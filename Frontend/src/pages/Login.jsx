@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { FormCard } from '../components/FormCard';
 import { InputField } from '../components/InputField';
 import { FrameImage } from '../components/FrameImage';
+import { PageTransition } from '../components/PageTransition';
 
 export const Login = ({ 
     imageUrl="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=1200&q=80",
@@ -31,6 +32,7 @@ export const Login = ({
   };
 
   return (
+    <PageTransition>
     <div className="w-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-12 flex items-center justify-center min-h-[85vh]">
       {/* Contenedor en Grid ampliado a max-w-7xl */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center w-full max-w-7xl">
@@ -149,5 +151,6 @@ export const Login = ({
 
       </div>
     </div>
+    </PageTransition>
   );
 };

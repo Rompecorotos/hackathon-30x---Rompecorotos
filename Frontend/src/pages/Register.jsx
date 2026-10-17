@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { FormCard } from '../components/FormCard';
 import { InputField } from '../components/InputField';
+import { PageTransition } from '../components/PageTransition';
+
 
 export const Register = () => {
   const [formData, setFormData] = useState({
@@ -49,7 +51,8 @@ export const Register = () => {
   };
 
   return (
-    <div className="w-full max-w-2xl mx-auto px-4 py-6 flex flex-col items-center justify-start">
+    <PageTransition>
+      <div className="w-full max-w-2xl mx-auto px-4 py-6 flex flex-col items-center justify-start">
       
       {/* Logo animado superior más compacto */}
       <div className="mb-4 flex flex-col items-center group cursor-pointer">
@@ -205,5 +208,6 @@ export const Register = () => {
       </div>
 
     </div>
+    </PageTransition>
   );
 };
