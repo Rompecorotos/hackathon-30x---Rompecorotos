@@ -112,7 +112,7 @@ export const Login = ({
                     onClick={handleForgotPass}
                     className="text-xs font-semibold text-indigo-600 hover:text-indigo-800 transition-colors"
                   >
-                    ¿Olvidaste tu contraseña? (Recuperar con OTP)
+                    ¿Olvidaste tu contraseña?
                   </button>
                 </div>
               </div>
