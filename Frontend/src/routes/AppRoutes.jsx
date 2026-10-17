@@ -4,6 +4,7 @@ import { PrivateRoute } from './PrivateRoute';
 import { PublicRoute } from './PublicRoute';
 import { Home } from '../pages/Home'; 
 import InvoiceForm from '../pages/InvoiceForm';
+import { Login } from '../pages/Login';
 
 export const AppRoutes = ({ isLoggedIn }) => {
   return (
@@ -26,18 +27,14 @@ export const AppRoutes = ({ isLoggedIn }) => {
           </div>
         }
       />
-      <Route path="/registroFact" element={<InvoiceForm />} />
 
       {/* Rutas Públicas (Login / Register) */}
-      <Route element={<PublicRoute isLoggedIn={isLoggedIn} />}>
-        <Route
-          path="/login"
-          element={
-            <div className="p-8 text-center text-xl font-bold">
-              Vista de Login
-            </div>
-          }
-        />
+      <Route
+        element={
+          <PublicRoute isLoggedIn={isLoggedIn} redirectTo="/registroFact" />
+        }
+      >
+        <Route path="/login" element={<Login />} />
         <Route
           path="/register"
           element={
@@ -50,6 +47,7 @@ export const AppRoutes = ({ isLoggedIn }) => {
 
       {/* Rutas Privadas */}
       <Route element={<PrivateRoute isLoggedIn={isLoggedIn} />}>
+        <Route path="/registroFact" element={<InvoiceForm />} />
         <Route
           path="/dashboard"
           element={
