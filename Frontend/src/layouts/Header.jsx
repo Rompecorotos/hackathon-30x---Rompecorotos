@@ -1,40 +1,34 @@
-
 import React from 'react';
-import { Link } from 'react-router-dom';
 import { Logo } from '../components/Logo';
 import { NavLink } from '../components/NavLink';
 import { AuthButtons } from '../components/AuthButtons';
 
 export const Header = ({ isLoggedIn = false }) => {
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-slate-200 bg-white shadow-sm">
-      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
+    <header className="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-slate-200 w-full">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
+        
+        {/* Izquierda: Logo y Menú de Navegación */}
+        <div className="flex items-center gap-6 sm:gap-8 overflow-x-auto no-scrollbar py-2">
+          <Logo />
 
-        {/* Logo */}
-        <Logo />
+          {/* Menú visible desde tablets/desktop, oculto en móviles muy pequeños si prefieres */}
+          <nav className="hidden md:flex items-center gap-6">
+            <NavLink href="#planes">Planes</NavLink>
+            <NavLink href="#documentacion">Documentación</NavLink>
+            
+            {/* Opción adicional visible SOLO cuando está logueado */}
+            {isLoggedIn && (
+              <NavLink href="#dashboard">Mi Panel</NavLink>
+            )}
+          </nav>
+        </div>
 
-        {/* Navegación principal */}
-        <nav className="hidden items-center gap-7 md:flex">
-          <NavLink href="/planes">Planes</NavLink>
-          <NavLink href="/documentacion">Documentación</NavLink>
-          <NavLink href="/seguridad">Seguridad</NavLink>
-
-          {isLoggedIn && (
-            <NavLink href="/dashboard">Mi Panel</NavLink>
-          )}
-        </nav>
-
-        {/* Acciones del usuario */}
-        <div className="flex items-center gap-3">
-          <div className="hidden rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 sm:block">
-            <span className="text-xs font-semibold text-slate-600">
-              <span className="mr-1 text-emerald-500">●</span>
-              SEPA & Débito Directo
-            </span>
-          </div>
-
+        {/* Derecha: Botones de Auth */}
+        <div className="flex-shrink-0">
           <AuthButtons isLoggedIn={isLoggedIn} />
         </div>
+
       </div>
     </header>
   );

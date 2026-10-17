@@ -50,3 +50,15 @@ body {
   flex-direction: column;
   box-sizing: border-box;
 }
+
+#root {
+  width: 100%;         
+  max-width: 100%;      
+  margin: 0;            
+  text-align: left;     
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  background-color: var(--bg);
+}
