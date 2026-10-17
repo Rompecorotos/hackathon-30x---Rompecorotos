@@ -58,7 +58,7 @@ export const Dashboard = () => {
           Mi Panel{profile?.fullName ? ` · ${profile.fullName}` : ''}
         </h1>
         <p className="text-sm text-slate-500">
-          Gestiona tus clientes, suscripciones y cobros.
+          Gestiona tus clientes, suscripciones y cobros. Pregunta al asistente IA (abajo a la derecha) para analizarlos.
         </p>
       </div>
 
