@@ -1,7 +1,7 @@
 import React from 'react';
 import { PlanCard } from '../components/PlanCard'; // Correcto: PlanCard
 
-export const Planes = () => {
+export const Plans = () => {
   const planes = [
     {
       title: 'Starter / PYME',

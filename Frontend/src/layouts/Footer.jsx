@@ -65,12 +65,12 @@ export const Footer = () => {
                 </Link>
               </li>
               <li>
-                <Link to="/planes" className="text-slate-400 hover:text-[#5BD3C7] transition-colors">
+                <Link to="/plans" className="text-slate-400 hover:text-[#5BD3C7] transition-colors">
                   Planes y Tarifas
                 </Link>
               </li>
               <li>
-                <Link to="/documentacion" className="text-slate-400 hover:text-[#5BD3C7] transition-colors">
+                <Link to="/documentation" className="text-slate-400 hover:text-[#5BD3C7] transition-colors">
                   Documentación Técnica
                 </Link>
               </li>
@@ -91,7 +91,7 @@ export const Footer = () => {
               {/* Teléfono */}
               <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
                 <span className="text-[#5BD3C7] font-bold">Teléfono:</span>
-                <span>+58 (412) 555-BANK</span>
+                <span>+58 (424) 599-5961</span>
               </div>
 
               {/* Correos apilados en columna */}
