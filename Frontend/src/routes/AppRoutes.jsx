@@ -8,6 +8,7 @@ import { Documentation } from '../pages/Documentation';
 import { Login } from '../pages/Login';
 import { Register } from '../pages/Register';
 import { Profile } from '../pages/Profile';
+import { ForgotPassword } from '../pages/ForgotPassword';
 
 export const AppRoutes = ({ isLoggedIn, isLoading }) => {
   return (
@@ -20,6 +21,7 @@ export const AppRoutes = ({ isLoggedIn, isLoading }) => {
       <Route element={<PublicRoute isLoggedIn={isLoggedIn} isLoading={isLoading} />}>
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
       </Route>
 
       {/* Rutas Privadas */}

@@ -11,7 +11,6 @@ export const Login = ({
     imageCaption="Infraestructura cognitiva y analítica avanzada para transacciones." 
 }) => {
   const [formData, setFormData] = useState({ email: '', password: '' });
-  const [otpSent, setOtpSent] = useState(false);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -20,15 +19,6 @@ export const Login = ({
   const handleSubmit = (e) => {
     e.preventDefault();
     console.log('Iniciando sesión con:', formData);
-  };
-
-  const handleForgotPass = (e) => {
-    e.preventDefault();
-    if (!formData.email) {
-      alert('Por favor, ingresa tu correo electrónico primero para enviarte el código OTP.');
-      return;
-    }
-    setOtpSent(true);
   };
 
   return (
@@ -107,24 +97,16 @@ export const Login = ({
                   required
                 />
                 
-                {/* Enlace de Recuperación de contraseña vía OTP */}
+                {/* Enlace directo a la pantalla de recuperación de contraseña */}
                 <div className="flex justify-end pt-1">
-                  <button
-                    type="button"
-                    onClick={handleForgotPass}
+                  <Link 
+                    to="/forgot-password" 
                     className="text-xs font-semibold text-indigo-600 hover:text-indigo-800 transition-colors"
                   >
                     ¿Olvidaste tu contraseña?
-                  </button>
+                  </Link>
                 </div>
               </div>
-
-              {/* Notificación de envío de OTP simulado */}
-              {otpSent && (
-                <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-emerald-800 text-center animate-fadeIn">
-                  ¡Código OTP de recuperación enviado exitosamente a <strong>{formData.email}</strong>! Revisa tu bandeja.
-                </div>
-              )}
             </FormCard>
 
             {/* Opción para ir a Registro si no tiene cuenta */}
