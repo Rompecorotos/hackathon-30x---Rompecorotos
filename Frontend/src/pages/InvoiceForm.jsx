@@ -1,11 +1,14 @@
 import { useRef, useState } from "react";
 import { supabase, supabaseReady } from "../lib/supabase";
+import { extractInvoiceFromPdf } from "../lib/extractInvoice";
 
 // ---------------------------------------------------------------------------
 // Configuración
 // ---------------------------------------------------------------------------
-// Mientras la Edge Function no exista, true: datos de prueba 
-const USE_MOCK = true;
+// "local": lee el PDF en el navegador (sin Supabase ni IA). Solo PDFs con texto.
+// "edge":  usa la Edge Function con IA (lee cualquier formato, incluso imágenes).
+//          Cuando tu compañero la tenga lista, cambia a "edge".
+const EXTRACTION_MODE = "local";
 const EDGE_FUNCTION = "extraer-factura";
 const MAX_FILE_MB = 10;
 const ACCEPTED = ["application/pdf", "image/png", "image/jpeg"];
@@ -40,24 +43,26 @@ const INITIAL = {
 };
 
 async function extractFromFile(file) {
-  if (USE_MOCK || !supabaseReady) {
-    await new Promise((r) => setTimeout(r, 1500));
-    return {
-      numero_factura: "F-0042",
-      beneficiario: "Don Pedro S.A.",
-      monto: 300,
-      moneda: "USD",
-      fecha_vencimiento: "2026-11-05",
-      concepto: "100 manzanas",
-    };
+  // Modo IA: Edge Function de Supabase
+  if (EXTRACTION_MODE === "edge" && supabaseReady) {
+    const body = new FormData();
+    body.append("file", file);
+    const { data, error } = await supabase.functions.invoke(EDGE_FUNCTION, {
+      body,
+    });
+    if (error) throw error;
+    return data;
   }
-  const body = new FormData();
-  body.append("file", file);
-  const { data, error } = await supabase.functions.invoke(EDGE_FUNCTION, {
-    body,
-  });
-  if (error) throw error;
-  return data;
+
+  // Modo local: lectura del PDF en el navegador
+  if (file.type === "application/pdf") {
+    return extractInvoiceFromPdf(file);
+  }
+
+  const err = new Error("IMAGEN");
+  err.userMessage =
+    "Las imágenes necesitan lectura con IA (aún no disponible). Sube un PDF o completa los datos a mano.";
+  throw err;
 }
 
 export default function InvoiceForm({ onCreated }) {
@@ -150,7 +155,9 @@ export default function InvoiceForm({ onCreated }) {
     } catch (e) {
       setMessage({
         type: "error",
-        text: "No se pudo leer la factura. Puedes completar los campos a mano.",
+        text:
+          e.userMessage ||
+          "No se pudo leer la factura. Puedes completar los campos a mano.",
       });
       console.error(e);
     } finally {
