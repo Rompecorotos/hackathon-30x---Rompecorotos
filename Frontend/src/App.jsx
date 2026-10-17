@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { BrowserRouter } from 'react-router-dom';
 import { Header } from './layouts/Header';
+import { Footer } from './layouts/Footer';
 import { AppRoutes } from './routes/AppRoutes';
 
 export function App() {
@@ -16,6 +17,8 @@ export function App() {
         <main className="p-6">
           <AppRoutes isLoggedIn={isLoggedIn} />
         </main>
+
+        <Footer />
       </div>
     </BrowserRouter>
   );

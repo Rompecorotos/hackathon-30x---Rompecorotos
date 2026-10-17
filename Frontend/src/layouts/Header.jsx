@@ -13,9 +13,9 @@ export const Header = ({ isLoggedIn = false }) => {
 
           {/* Menú visible desde tablets/desktop, oculto en móviles muy pequeños si prefieres */}
           <nav className="hidden md:flex items-center gap-6">
-            <NavLink href="#planes">Planes</NavLink>
-            <NavLink href="#documentacion">Documentación</NavLink>
-
+            <NavLink href="/plans">Planes</NavLink>
+            <NavLink href="/documentation">Documentación</NavLink>
+            
             {/* Opción adicional visible SOLO cuando está logueado */}
             {isLoggedIn && <NavLink href="#dashboard">Mi Panel</NavLink>}
           </nav>

@@ -34,7 +34,7 @@ export const FaqSection = () => {
         <span className="text-xs font-bold tracking-widest text-[#2B2E4A] uppercase bg-slate-100 px-3 py-1 rounded-full">
           RESOLUCIÓN DE DUDAS
         </span>
-        <h2 className="text-3xl sm:text-4xl font-extrabold text-[#2B2E4A] tracking-tight">
+        <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
           Preguntas Frecuentes sobre Débito Automático
         </h2>
         <p className="text-slate-600 text-sm sm:text-base">
