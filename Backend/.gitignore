@@ -30,3 +30,6 @@ lerna-debug.log*
 Thumbs.db
 .vscode/
 .idea/
+# TypeScript / Next.js generados
+next-env.d.ts
+*.tsbuildinfo
