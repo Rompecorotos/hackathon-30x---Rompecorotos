@@ -77,7 +77,7 @@ export const PaymentsPanel = ({ subscriptions, payments, onChange }) => {
   const visible = filter ? payments.filter((p) => p.status === filter) : payments;
 
   return (
-    <Panel title="Cobros" subtitle="Historial de intentos de cobro">
+    <Panel title="Cobros" subtitle="Historial de intentos de cobro (el agente IA los analiza para proponer reintentos)">
       <form onSubmit={handleSubmit} className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <SelectField
           label="Suscripción"

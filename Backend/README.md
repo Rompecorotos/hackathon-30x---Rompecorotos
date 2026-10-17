@@ -7,11 +7,12 @@ en cookies httpOnly y el navegador nunca ve claves ni tokens de Supabase.
 ### Puesta en marcha
 
 1. **Supabase**: crea un proyecto y ejecuta, en orden, las migraciones de `supabase/migrations/`
-   (`..._profiles.sql` y `..._payments.sql`) desde el SQL Editor, o `supabase link` + `supabase db push`.
+   (`..._profiles.sql`, `..._payments.sql` y `..._ai_requests.sql`) desde el SQL Editor, o `supabase link` + `supabase db push`.
 2. En *Authentication > URL Configuration* añade `http://localhost:5173/api/auth/callback`
    a **Redirect URLs** (y la URL equivalente de producción).
 3. `cp .env.example .env.local` y completa `SUPABASE_URL` y `SUPABASE_PUBLISHABLE_KEY`
    (clave publicable o *anon*; **no** uses `service_role`, no es necesaria).
+   Para el asistente IA añade `GOOGLE_GENERATIVE_AI_API_KEY` (gratis en https://aistudio.google.com/apikey).
 4. `npm install && npm run dev` (puerto 3000). En otra terminal: `cd ../Frontend && npm run dev`.
    Si el backend usa otro puerto, define `BACKEND_URL` en `Frontend/.env.local`.
 
@@ -32,6 +33,15 @@ en cookies httpOnly y el navegador nunca ve claves ni tokens de Supabase.
 | PATCH/DELETE | `/api/subscriptions/:id` | Sí | Editar (incl. `status`: active/paused/canceled) / eliminar |
 | GET/POST | `/api/payments` | Sí | Listar (`?status=`) / registrar `{subscriptionId, status, dueDate, failureReason?, attemptNumber?}` |
 | PATCH/DELETE | `/api/payments/:id` | Sí | Cambiar estado / eliminar |
+| POST | `/api/ai/chat` | Sí | Asistente IA (Gemini, streaming de AI SDK) |
+
+### Asistente IA
+
+Un único asistente cubre **soporte** (dudas sobre Bankly) y **agente de pagos**: con herramientas de
+solo lectura (`resumenCobros`, `cobrosFallidos`, `proximosCobros`, `buscarCliente`) analiza los datos
+del comercio y recomienda reintentos y acciones. Usa el cliente de Supabase del usuario, así que RLS
+limita lo que ve; no ejecuta cobros ni modifica datos. Límite por usuario configurable
+(`AI_DAILY_LIMIT`, `AI_PER_MINUTE_LIMIT`, tabla `ai_requests`) para no agotar la cuota gratuita.
 
 Errores: `{error, fields?}` con 400/401/403/404/409/415/422/429/503. Las mutaciones exigen
 `Content-Type: application/json` y un `Origin` incluido en `FRONTEND_ORIGIN` (protección CSRF).
