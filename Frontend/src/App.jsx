@@ -1,25 +1,34 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { BrowserRouter } from 'react-router-dom';
 import { Header } from './layouts/Header';
 import { Footer } from './layouts/Footer';
 import { AppRoutes } from './routes/AppRoutes';
+import { AuthProvider, useAuth } from './context/AuthContext';
 
-export function App() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+function AppShell() {
+  const { isLoggedIn, isLoading } = useAuth();
 
   return (
+    <div className="min-h-screen bg-slate-50 text-slate-900">
+      {/* El Header se mantiene visible en todas partes */}
+      <Header isLoggedIn={isLoggedIn} />
+
+      {/* Aquí se cargan las vistas según la URL */}
+      <main className="p-6">
+        <AppRoutes isLoggedIn={isLoggedIn} isLoading={isLoading} />
+      </main>
+
+      <Footer />
+    </div>
+  );
+}
+
+export function App() {
+  return (
     <BrowserRouter>
-      <div className="min-h-screen bg-slate-50 text-slate-900">
-        {/* El Header se mantiene visible en todas partes */}
-        <Header isLoggedIn={isLoggedIn} />
-
-        {/* Aquí se cargan las vistas según la URL */}
-        <main className="p-6">
-          <AppRoutes isLoggedIn={isLoggedIn} />
-        </main>
-
-        <Footer />
-      </div>
+      <AuthProvider>
+        <AppShell />
+      </AuthProvider>
     </BrowserRouter>
   );
 }
