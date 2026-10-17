@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Link } from 'react-router-dom';
 
@@ -15,7 +14,7 @@ export const AuthButtons = ({ isLoggedIn = false }) => {
           to="/perfil"
           title="Mi perfil"
           aria-label="Mi perfil"
-          className="flex h-9 w-9 items-center justify-center rounded-full bg-indigo-950 text-white transition hover:bg-indigo-800"
+          className="flex h-9 w-9 items-center justify-center rounded-full bg-[#2B2E4A] text-white transition hover:bg-slate-800"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -46,7 +45,7 @@ export const AuthButtons = ({ isLoggedIn = false }) => {
 
       <Link
         to="/register"
-        className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700"
+        className="rounded-lg bg-[#5BD3C7] px-4 py-2 text-sm font-bold text-[#2B2E4A] shadow-sm transition hover:bg-[#4ac3b7] hover:shadow"
       >
         Registrarse
       </Link>
