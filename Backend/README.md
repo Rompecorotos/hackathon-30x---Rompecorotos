@@ -6,8 +6,8 @@ en cookies httpOnly y el navegador nunca ve claves ni tokens de Supabase.
 
 ### Puesta en marcha
 
-1. **Supabase**: crea un proyecto y ejecuta `supabase/migrations/20261017000000_profiles.sql`
-   (SQL Editor, o `supabase link` + `supabase db push` con la CLI).
+1. **Supabase**: crea un proyecto y ejecuta, en orden, las migraciones de `supabase/migrations/`
+   (`..._profiles.sql` y `..._payments.sql`) desde el SQL Editor, o `supabase link` + `supabase db push`.
 2. En *Authentication > URL Configuration* añade `http://localhost:5173/api/auth/callback`
    a **Redirect URLs** (y la URL equivalente de producción).
 3. `cp .env.example .env.local` y completa `SUPABASE_URL` y `SUPABASE_PUBLISHABLE_KEY`
@@ -26,6 +26,12 @@ en cookies httpOnly y el navegador nunca ve claves ni tokens de Supabase.
 | GET | `/api/auth/callback` | — | Destino del email de confirmación (PKCE) → redirige al frontend |
 | GET | `/api/profile` | Sí | Perfil propio |
 | PATCH | `/api/profile` | Sí | `{fullName}` → perfil actualizado |
+| GET/POST | `/api/customers` | Sí | Listar / crear `{name, email}` |
+| PATCH/DELETE | `/api/customers/:id` | Sí | Editar / eliminar (en cascada) |
+| GET/POST | `/api/subscriptions` | Sí | Listar / crear `{customerId, description, amountCents, currency, billingInterval, nextChargeDate}` |
+| PATCH/DELETE | `/api/subscriptions/:id` | Sí | Editar (incl. `status`: active/paused/canceled) / eliminar |
+| GET/POST | `/api/payments` | Sí | Listar (`?status=`) / registrar `{subscriptionId, status, dueDate, failureReason?, attemptNumber?}` |
+| PATCH/DELETE | `/api/payments/:id` | Sí | Cambiar estado / eliminar |
 
 Errores: `{error, fields?}` con 400/401/403/404/409/415/422/429/503. Las mutaciones exigen
 `Content-Type: application/json` y un `Origin` incluido en `FRONTEND_ORIGIN` (protección CSRF).
