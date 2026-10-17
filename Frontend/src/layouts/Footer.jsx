@@ -1,18 +1,16 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Logo } from '../components/Logo';
 
 export const Footer = () => {
   return (
     <footer className="bg-[#2B2E4A] text-slate-300 w-full mt-auto border-t border-slate-800">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
-        {/* Contenido principal del Footer en grid */}
+        {/* Contenido principal del Footer */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 lg:gap-12 pb-12 border-b border-slate-700/60">
           
           {/* Columna 1: Marca / Isotipo */}
           <div className="space-y-4">
             <div className="flex items-center gap-2.5 bg-white/5 p-3 rounded-xl w-fit">
-              {/* Reutilizamos el Logo ajustando contenedores si es necesario o texto claro */}
               <div className="flex items-center gap-2.5">
                 <svg
                   width="32"
@@ -67,7 +65,7 @@ export const Footer = () => {
                 </Link>
               </li>
               <li>
-                <Link to="/plans" className="text-slate-400 hover:text-[#5BD3C7] transition-colors">
+                <Link to="/planes" className="text-slate-400 hover:text-[#5BD3C7] transition-colors">
                   Planes y Tarifas
                 </Link>
               </li>
@@ -84,22 +82,31 @@ export const Footer = () => {
             </ul>
           </div>
 
-          {/* Columna 3: Contacto y Correos */}
+          {/* Columna 3: Contacto y Correos (Corregido para pantallas pequeñas) */}
           <div className="space-y-4">
             <h4 className="text-sm font-bold tracking-wider text-white uppercase">
               Contacto y Soporte
             </h4>
-            <div className="space-y-3 text-sm text-slate-400">
-              <div className="flex items-center gap-2.5">
+            <div className="space-y-4 text-sm text-slate-400">
+              {/* Teléfono */}
+              <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
                 <span className="text-[#5BD3C7] font-bold">Teléfono:</span>
                 <span>+58 (412) 555-BANK</span>
               </div>
-              <div className="flex items-col gap-1">
-                <span className="text-[#5BD3C7] font-bold block">Correo Electrónico:</span>
-                <a href="mailto:soporte@bankly.com" className="hover:text-white transition-colors block">
+
+              {/* Correos apilados en columna */}
+              <div className="flex flex-col space-y-1">
+                <span className="text-[#5BD3C7] font-bold">Correo Electrónico:</span>
+                <a
+                  href="mailto:soporte@bankly.com"
+                  className="hover:text-white transition-colors break-all"
+                >
                   soporte@bankly.com
                 </a>
-                <a href="mailto:equipo@rompecorotos.com" className="hover:text-white transition-colors block">
+                <a
+                  href="mailto:equipo@rompecorotos.com"
+                  className="hover:text-white transition-colors break-all"
+                >
                   equipo@rompecorotos.com
                 </a>
               </div>
@@ -109,12 +116,12 @@ export const Footer = () => {
         </div>
 
         {/* Barra inferior: Copyright */}
-        <div className="pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500 text-center sm:text-left">
+        <div className="pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-400 text-center sm:text-left">
           <p>© 2026 Equipo Rompecorotos. Todos los derechos reservados.</p>
-          <div className="flex items-center gap-6">
-            <span className="hover:text-slate-400 cursor-pointer">Política de Privacidad</span>
-            <span className="hover:text-slate-400 cursor-pointer">Términos de Servicio</span>
-            <span className="hover:text-slate-400 cursor-pointer">Seguridad PCI-DSS</span>
+          <div className="flex flex-wrap justify-center gap-4 sm:gap-6">
+            <span className="hover:text-white cursor-pointer transition-colors">Política de Privacidad</span>
+            <span className="hover:text-white cursor-pointer transition-colors">Términos de Servicio</span>
+            <span className="hover:text-white cursor-pointer transition-colors">Seguridad PCI-DSS</span>
           </div>
         </div>
       </div>
