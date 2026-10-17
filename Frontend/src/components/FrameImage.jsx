@@ -13,7 +13,7 @@ export const FrameImage = ({ src, alt, caption }) => {
         <div className="text-xs font-medium text-slate-400 truncate max-w-[250px] sm:max-w-md">
           {alt || 'Vista previa de la plataforma'}
         </div>
-        <div className="w-10"></div> {/* Espaciador para centrar el título */}
+        <div className="w-10"></div>
       </div>
 
       {/* Contenedor de la Imagen */}
