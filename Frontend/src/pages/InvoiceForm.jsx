@@ -1,10 +1,10 @@
 import { useRef, useState } from "react";
-import { supabase } from "../lib/supabase";
+import { supabase, supabaseReady } from "../lib/supabase";
 
 // ---------------------------------------------------------------------------
 // Configuración
 // ---------------------------------------------------------------------------
-// Mientras la Edge Function no exista, true: para datos de prueba
+// Mientras la Edge Function no exista, true: datos de prueba 
 const USE_MOCK = true;
 const EDGE_FUNCTION = "extraer-factura";
 const MAX_FILE_MB = 10;
@@ -40,7 +40,7 @@ const INITIAL = {
 };
 
 async function extractFromFile(file) {
-  if (USE_MOCK) {
+  if (USE_MOCK || !supabaseReady) {
     await new Promise((r) => setTimeout(r, 1500));
     return {
       numero_factura: "F-0042",
@@ -181,7 +181,7 @@ export default function InvoiceForm({ onCreated }) {
     if (!validate()) return;
 
     setSaving(true);
-    const { error } = await supabase.from("facturas").insert({
+    const payload = {
       numero_factura: form.numero_factura.trim(),
       beneficiario: form.beneficiario.trim(),
       monto: Number(form.monto),
@@ -189,7 +189,16 @@ export default function InvoiceForm({ onCreated }) {
       fecha_vencimiento: form.fecha_vencimiento,
       concepto: form.concepto.trim() || null,
       estado: "recibida", // el agente la tomará desde aquí
-    });
+    };
+
+    let error = null;
+    if (supabaseReady) {
+      ({ error } = await supabase.from("facturas").insert(payload));
+    } else {
+      // Modo demo: no hay Supabase, solo mostramos lo que se guardaría.
+      await new Promise((r) => setTimeout(r, 600));
+      console.log("Factura (modo demo, no guardada):", payload);
+    }
     setSaving(false);
 
     if (error) {
@@ -201,7 +210,9 @@ export default function InvoiceForm({ onCreated }) {
     }
     setMessage({
       type: "ok",
-      text: "Factura registrada. El agente la revisará pronto.",
+      text: supabaseReady
+        ? "Factura registrada. El agente la revisará pronto."
+        : "Modo demo: la factura no se guardó (aún no hay Supabase). Mira la consola.",
     });
     setForm(INITIAL);
     setErrors({});
