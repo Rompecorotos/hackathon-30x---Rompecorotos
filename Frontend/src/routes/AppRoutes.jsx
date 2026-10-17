@@ -3,13 +3,13 @@ import { Routes, Route } from 'react-router-dom';
 import { PrivateRoute } from './PrivateRoute';
 import { PublicRoute } from './PublicRoute';
 import { Home } from '../pages/Home'; 
+import { Planes } from '../pages/Planes';
 
 export const AppRoutes = ({ isLoggedIn }) => {
   return (
     <Routes>
-      {/* Ruta Principal / Landing Page */}
       <Route path="/" element={<Home />} />
-      <Route path="/planes" element={<div className="p-8 text-center text-xl font-bold">Vista de Planes</div>} />
+      <Route path="/plans" element={<Planes />} />
       <Route path="/documentacion" element={<div className="p-8 text-center text-xl font-bold">Vista de Documentación</div>} />
 
       {/* Rutas Públicas (Login / Register) */}
