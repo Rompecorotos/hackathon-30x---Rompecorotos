@@ -1,8 +1,16 @@
 import React from 'react';
 
-export const FormCard = ({ title, subtitle, onSubmit, submitText, children, isLoading = false }) => {
+export const FormCard = ({ 
+  title, 
+  subtitle, 
+  onSubmit, 
+  submitText, 
+  children, 
+  isLoading = false,
+  maxWidth = "max-w-md"
+}) => {
   return (
-    <div className="w-full max-w-md mx-auto bg-white p-6 sm:p-8 rounded-2xl border border-slate-200 shadow-sm space-y-6">
+    <div className={`w-full ${maxWidth} mx-auto bg-white p-6 sm:p-8 rounded-2xl border border-slate-200 shadow-sm space-y-6`}>
       {/* Encabezado del Formulario */}
       {(title || subtitle) && (
         <div className="text-center space-y-1">
