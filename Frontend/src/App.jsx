@@ -4,6 +4,7 @@ import { Header } from './layouts/Header';
 import { Footer } from './layouts/Footer';
 import { AppRoutes } from './routes/AppRoutes';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { ChatWidget } from './components/ChatWidget';
 
 function AppShell() {
   const { isLoggedIn, isLoading } = useAuth();
@@ -19,6 +20,9 @@ function AppShell() {
       </main>
 
       <Footer />
+
+      {/* Asistente IA: solo para usuarios autenticados (protege la cuota gratuita) */}
+      {isLoggedIn && <ChatWidget />}
     </div>
   );
 }
