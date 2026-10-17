@@ -7,24 +7,17 @@ import { Plans } from '../pages/Plans';
 import { Documentation } from '../pages/Documentation';
 import { Login } from '../pages/Login';
 import { Register } from '../pages/Register';
-<<<<<<< HEAD
-=======
 import { Profile } from '../pages/Profile';
->>>>>>> 5863f7a1996d749683e1cdd2591b035bfe6eb631
 
 export const AppRoutes = ({ isLoggedIn, isLoading }) => {
   return (
     <Routes>
       <Route path="/" element={<Home />} />
       <Route path="/plans" element={<Plans />} />
-      <Route path="/documentation" element={<Documentation/>} />
+      <Route path="/documentation" element={<Documentation />} />
 
       {/* Rutas Públicas (Login / Register) */}
-<<<<<<< HEAD
-      <Route element={<PublicRoute isLoggedIn={isLoggedIn} />}>
-=======
       <Route element={<PublicRoute isLoggedIn={isLoggedIn} isLoading={isLoading} />}>
->>>>>>> 5863f7a1996d749683e1cdd2591b035bfe6eb631
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
       </Route>
