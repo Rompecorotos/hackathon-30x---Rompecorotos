@@ -1,8 +1,9 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { openPlanModal } from '../lib/planEvents';
 
-// Menú del icono de usuario: Mi perfil y Cerrar sesión.
+// Menú del icono de usuario: Mi perfil, Mi plan y Cerrar sesión.
 const UserMenu = () => {
   const { user, profile, logout } = useAuth();
   const navigate = useNavigate();
@@ -67,6 +68,17 @@ const UserMenu = () => {
           <Link to="/perfil" role="menuitem" onClick={() => setOpen(false)} className={itemClass}>
             Mi perfil
           </Link>
+          <button
+            type="button"
+            role="menuitem"
+            onClick={() => {
+              setOpen(false);
+              openPlanModal();
+            }}
+            className={itemClass}
+          >
+            Mi plan
+          </button>
           <button type="button" role="menuitem" onClick={handleLogout} disabled={loggingOut} className={`${itemClass} text-red-600 hover:bg-red-50`}>
             {loggingOut ? 'Cerrando sesión...' : 'Cerrar sesión'}
           </button>

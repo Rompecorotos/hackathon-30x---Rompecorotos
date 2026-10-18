@@ -45,6 +45,10 @@ export const api = {
   verifyPasswordCode: (email, token) => request('/auth/password/verify', { method: 'POST', body: { email, token } }),
   resetPassword: (password) => request('/auth/password/reset', { method: 'POST', body: { password } }),
 
+  getPlan: () => request('/plan'),
+  // action: 'subscribe' | 'renew' | 'change'
+  updatePlan: (action, planId) => request('/plan', { method: 'POST', body: { action, ...(planId && { planId }) } }),
+
   listInvoices: () => request('/invoices'),
   // Manual: JSON. Imagen/PDF/QR: multipart con el documento o el texto del QR para que la IA compare.
   createInvoice: (data, { source = 'manual', file = null, qr = null } = {}) => {

@@ -34,6 +34,14 @@ export const AuthProvider = ({ children }) => {
 
   const logout = useCallback(async () => {
     await api.logout();
+    // El aviso del plan vuelve a mostrarse en el siguiente inicio de sesión.
+    try {
+      Object.keys(sessionStorage)
+        .filter((k) => k.startsWith('bankly.planNotice.'))
+        .forEach((k) => sessionStorage.removeItem(k));
+    } catch {
+      /* sin almacenamiento disponible */
+    }
     applySession(null);
   }, [applySession]);
 

@@ -2,6 +2,7 @@ import { useCallback, useRef, useState } from "react";
 import { api } from "../lib/api";
 import { extractInvoiceFromPdf } from "../lib/extractInvoice";
 import { QrScanner } from "../components/QrScanner";
+import { looksLikeImage, normalizeImage } from "../lib/image";
 
 // ---------------------------------------------------------------------------
 // Configuración
@@ -18,7 +19,8 @@ const MODES = [
   { id: "qr", label: "Código QR" },
 ];
 const ACCEPT_BY_MODE = {
-  imagen: { types: ["image/png", "image/jpeg"], input: "image/png,image/jpeg,.png,.jpg,.jpeg", hint: "PNG o JPG" },
+  // Cualquier imagen: se convierte a JPG ≤ 4 MB en el navegador (lib/image.js).
+  imagen: { types: [], input: "image/*", hint: "JPG, PNG o WebP" },
   pdf: { types: ["application/pdf"], input: "application/pdf,.pdf", hint: "PDF" },
 };
 
@@ -144,38 +146,42 @@ export default function InvoiceForm({ onCreated }) {
     }
     setForm((f) => ({ ...f, ...patch }));
     setAutofilled(new Set(keys));
+    const missingDueDate = !patch.fecha_vencimiento;
     setErrors((e) => {
       const next = { ...e };
       keys.forEach((k) => delete next[k]);
+      if (missingDueDate) next.fecha_vencimiento = "No se encontró en la factura: indícala a mano";
       return next;
     });
     setMessage({
       type: "info",
-      text: "Datos autorrellenados. Revísalos y corrige lo que haga falta: al registrar, la IA comprobará que coincidan con la factura.",
+      text: `Datos autorrellenados${missingDueDate ? " (falta la fecha de vencimiento)" : ", incluida la fecha de vencimiento"}. Revísalos y corrige lo que haga falta: al registrar, la IA comprobará que coincidan con la factura.`,
     });
   }, []);
 
   // ---- Imagen / PDF -------------------------------------------------------
   async function handleFile(ev) {
-    const file = ev.target.files?.[0];
+    let file = ev.target.files?.[0];
     ev.target.value = ""; // permite volver a elegir el mismo archivo
     if (!file) return;
     setMessage(null);
     setReview(null);
 
     const accept = ACCEPT_BY_MODE[mode];
-    if (!accept.types.includes(file.type)) {
+    if (mode === "imagen" ? !looksLikeImage(file) : !accept.types.includes(file.type)) {
       setMessage({ type: "error", text: `Formato no válido. Usa ${accept.hint}.` });
       return;
     }
-    if (file.size > MAX_FILE_MB * 1024 * 1024) {
-      setMessage({ type: "error", text: `El archivo supera el máximo de ${MAX_FILE_MB} MB.` });
-      return;
-    }
 
-    setSourceFile(file);
     setExtracting(true);
     try {
+      // Las fotos se convierten a JPG ≤ 4 MB; los PDF deben cumplir el límite tal cual.
+      if (mode === "imagen") file = await normalizeImage(file);
+      if (file.size > MAX_FILE_MB * 1024 * 1024) {
+        setMessage({ type: "error", text: `El archivo supera el máximo de ${MAX_FILE_MB} MB.` });
+        return;
+      }
+      setSourceFile(file);
       applyExtracted(await extractFromFile(file, mode));
     } catch (e) {
       setMessage({ type: "error", text: e.userMessage || "No se pudo leer la factura. Puedes completar los campos a mano." });

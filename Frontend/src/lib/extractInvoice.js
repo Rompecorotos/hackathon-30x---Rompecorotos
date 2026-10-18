@@ -84,11 +84,26 @@ function parseAmount(raw) {
   return Number.isNaN(n) ? null : n;
 }
 
+const MESES = {
+  enero: 1, febrero: 2, marzo: 3, abril: 4, mayo: 5, junio: 6, julio: 7, agosto: 8,
+  septiembre: 9, setiembre: 9, octubre: 10, noviembre: 11, diciembre: 12,
+  ene: 1, feb: 2, mar: 3, abr: 4, may: 5, jun: 6, jul: 7, ago: 8, sep: 9, set: 9, oct: 10, nov: 11, dic: 12,
+  january: 1, february: 2, march: 3, april: 4, june: 6, july: 7, august: 8, september: 9,
+  october: 10, november: 11, december: 12, jan: 1, apr: 4, aug: 8, dec: 12,
+};
+const iso = (y, mo, d) => `${y}-${String(mo).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+
 function toIsoDate(s) {
   let m = s.match(/(\d{4})-(\d{2})-(\d{2})/);
   if (m) return m[0];
   m = s.match(/(\d{1,2})[/\-.](\d{1,2})[/\-.](\d{4})/); // dd/mm/yyyy
-  if (m) return `${m[3]}-${m[2].padStart(2, "0")}-${m[1].padStart(2, "0")}`;
+  if (m) return iso(m[3], m[2], m[1]);
+  // "01 de Noviembre, 2026" / "1 noviembre 2026" / "01-nov-2026"
+  m = s.match(/(\d{1,2})\s*(?:de\s+|-|\s)\s*([a-záéíóú]+)\.?\s*(?:de\s+|,|-)?\s*(\d{4})/i);
+  if (m && MESES[m[2].toLowerCase()]) return iso(m[3], MESES[m[2].toLowerCase()], m[1]);
+  // "Nov 1, 2026" / "November 1 2026"
+  m = s.match(/([a-z]+)\.?\s+(\d{1,2}),?\s+(\d{4})/i);
+  if (m && MESES[m[1].toLowerCase()]) return iso(m[3], MESES[m[1].toLowerCase()], m[2]);
   return null;
 }
 
@@ -120,7 +135,7 @@ function parseInvoiceLines(lines) {
   // Fecha de vencimiento
   for (const line of lines) {
     const v = line.match(
-      /(?:Vencimiento|Vence|Fecha\s+de\s+vencimiento|Fecha\s+l[ií]mite)\s*[:\-]?\s*(.+)$/i,
+      /(?:Fecha\s+de\s+vencimiento|Vencimiento|Vence|Fecha\s+l[ií]mite(?:\s+de\s+pago)?|Pagar\s+antes\s+de|Due\s+date|Payment\s+due)\s*[:\-]?\s*(.+)$/i,
     );
     if (v) {
       const iso = toIsoDate(v[1]);
