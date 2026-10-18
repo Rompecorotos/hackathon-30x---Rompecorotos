@@ -24,6 +24,10 @@ export function dbError(error: PostgrestError): HttpError {
       return new HttpError(422, 'Datos inválidos');
     case '42501':
       return new HttpError(403, 'No tienes permiso para esta operación');
+    case 'PGRST205':
+      // La tabla no existe en Supabase: falta ejecutar una migración de supabase/migrations.
+      console.error('[db] Tabla inexistente (¿migración pendiente?):', error.message);
+      return new HttpError(503, 'Falta aplicar una migración de base de datos en Supabase');
     default:
       console.error('[db] Error de base de datos:', error.code, error.message);
       return new HttpError(500, 'Error interno del servidor');
