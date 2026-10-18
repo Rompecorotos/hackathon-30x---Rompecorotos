@@ -193,17 +193,32 @@ export default function InvoiceForm({ onCreated }) {
 
   // ---- Código QR ----------------------------------------------------------
   const handleQr = useCallback(
-    async (text) => {
+    async (text, photo) => {
       setQrText(text);
+      setSourceFile(null);
       setReview(null);
+      setMessage(null);
       setExtracting(true);
       try {
+        const fromQr = await api.extractInvoice(text, "qr").catch(() => ({}));
+        let data = fromQr;
+        // Muchos QR solo traen una referencia (p. ej. "TT-…"): si faltan datos clave y hay
+        // foto, la IA lee también la imagen. La factura visible manda; el QR solo rellena huecos
+        // (así una referencia de transacción no sustituye al número de factura real).
+        const missing = !fromQr.beneficiario || fromQr.monto == null || !fromQr.fecha_vencimiento;
+        if (missing && photo) {
+          const image = await normalizeImage(photo);
+          const fromImage = await api.extractInvoice(image, "imagen").catch(() => ({}));
+          const filled = (o) => Object.fromEntries(Object.entries(o).filter(([, v]) => v != null && v !== ""));
+          data = { ...filled(fromQr), ...filled(fromImage) };
+          if (Object.values(fromImage).some((v) => v != null && v !== "")) setSourceFile(image); // la IA la usará al revisar
+        }
         applyExtracted(
-          await api.extractInvoice(text, "qr"),
-          "El QR se leyó, pero no contiene los datos de la factura (solo una referencia o un enlace). Completa los campos a mano o usa Imagen/PDF.",
+          data,
+          "El QR se leyó, pero solo contiene una referencia y la foto no muestra los datos de la factura. Fotografía la factura completa (con el QR) o usa Imagen/PDF.",
         );
       } catch (e) {
-        setMessage({ type: "error", text: `${e.message} Puedes completar los campos a mano; el QR se usará para la revisión.` });
+        setMessage({ type: "error", text: e.userMessage ?? `${e.message} Puedes completar los campos a mano; el QR se usará para la revisión.` });
       } finally {
         setExtracting(false);
       }
@@ -342,7 +357,7 @@ export default function InvoiceForm({ onCreated }) {
           <div className="space-y-2">
             <QrScanner onDecode={handleQr} disabled={busy} />
             <p className="break-all text-xs text-white/70">
-              {extracting ? "Leyendo datos del QR..." : qrText ? `QR leído: ${qrText.slice(0, 120)}${qrText.length > 120 ? "…" : ""}` : `Foto del QR: PNG o JPG · máx. ${MAX_FILE_MB} MB`}
+              {extracting ? "Leyendo datos del QR..." : qrText ? `QR leído: ${qrText.slice(0, 120)}${qrText.length > 120 ? "…" : ""}` : "Foto del QR o de la factura con su QR (JPG, PNG o WebP)"}
             </p>
           </div>
         )}
