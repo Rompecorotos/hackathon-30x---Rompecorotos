@@ -146,14 +146,16 @@ export default function InvoiceForm({ onCreated }) {
     }
     setForm((f) => ({ ...f, ...patch }));
     setAutofilled(new Set(keys));
+    const missingDueDate = !patch.fecha_vencimiento;
     setErrors((e) => {
       const next = { ...e };
       keys.forEach((k) => delete next[k]);
+      if (missingDueDate) next.fecha_vencimiento = "No se encontró en la factura: indícala a mano";
       return next;
     });
     setMessage({
       type: "info",
-      text: "Datos autorrellenados. Revísalos y corrige lo que haga falta: al registrar, la IA comprobará que coincidan con la factura.",
+      text: `Datos autorrellenados${missingDueDate ? " (falta la fecha de vencimiento)" : ", incluida la fecha de vencimiento"}. Revísalos y corrige lo que haga falta: al registrar, la IA comprobará que coincidan con la factura.`,
     });
   }, []);
 
