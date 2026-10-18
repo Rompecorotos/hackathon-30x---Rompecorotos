@@ -19,7 +19,7 @@ export const Header = ({ isLoggedIn = false }) => {
             
             {/* Opción adicional visible SOLO cuando está logueado */}
             {isLoggedIn && (
-              <NavLink href="#dashboard">Mi Panel</NavLink>
+              <NavLink href="/dashboard">Mi Panel</NavLink>
             )}
           </nav>
         </div>

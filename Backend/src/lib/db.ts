@@ -1,0 +1,40 @@
+import 'server-only';
+import type { PostgrestError } from '@supabase/supabase-js';
+import { z } from 'zod';
+import { HttpError } from '@/lib/http';
+
+const UNIQUE_MESSAGES: Record<string, string> = {
+  customers_owner_email_key: 'Ya existe un cliente con ese email',
+};
+
+/** Traduce errores de PostgREST/Postgres a HttpError sin exponer detalles internos. */
+export function dbError(error: PostgrestError): HttpError {
+  switch (error.code) {
+    case '23505': {
+      const key = Object.keys(UNIQUE_MESSAGES).find((k) => error.message.includes(k));
+      return new HttpError(409, key ? UNIQUE_MESSAGES[key] : 'El registro ya existe');
+    }
+    case '23503':
+      return new HttpError(422, 'El registro relacionado no existe');
+    case '23514':
+    case '22P02':
+    case '22007':
+    case '22008':
+      return new HttpError(422, 'Datos inválidos');
+    case '42501':
+      return new HttpError(403, 'No tienes permiso para esta operación');
+    default:
+      console.error('[db] Error de base de datos:', error.code, error.message);
+      return new HttpError(500, 'Error interno del servidor');
+  }
+}
+
+/** Valida el parámetro [id] de la ruta. Un id inválido se trata como inexistente. */
+export async function idParam(params: Promise<{ id: string }>): Promise<string> {
+  const { id } = await params;
+  const result = z.uuid().safeParse(id);
+  if (!result.success) throw new HttpError(404, 'Recurso no encontrado');
+  return result.data;
+}
+
+export type IdContext = { params: Promise<{ id: string }> };

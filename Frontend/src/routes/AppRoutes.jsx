@@ -10,11 +10,12 @@ import { Login } from '../pages/Login';
 import { Register } from '../pages/Register';
 import { Profile } from '../pages/Profile';
 import { ForgotPassword } from '../pages/ForgotPassword';
+import { Dashboard } from '../pages/Dashboard';
 
 export const AppRoutes = ({ isLoggedIn, isLoading }) => {
   return (
     <>
-      <ScrollToTop /> 
+      <ScrollToTop />
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/plans" element={<Plans />} />
@@ -29,7 +30,7 @@ export const AppRoutes = ({ isLoggedIn, isLoading }) => {
 
         {/* Rutas Privadas */}
         <Route element={<PrivateRoute isLoggedIn={isLoggedIn} isLoading={isLoading} />}>
-          <Route path="/dashboard" element={<div className="p-8 text-center text-xl font-bold">Mi Panel Privado / Dashboard</div>} />
+          <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/perfil" element={<Profile />} />
         </Route>
 
