@@ -6,7 +6,7 @@ import { decodeCanvas, decodeQrFromFile } from "../lib/qr";
  * Lector de códigos QR: con la cámara o subiendo una foto del código (PNG/JPG, máx. 4 MB).
  * Llama a onDecode(texto, foto) al leer un código (foto: el archivo subido o un fotograma de la cámara).
  */
-export function QrScanner({ onDecode, disabled }) {
+export function QrScanner({ onDecode, onNoQr, disabled }) {
   const videoRef = useRef(null);
   const fileRef = useRef(null);
   const [scanning, setScanning] = useState(false);
@@ -74,7 +74,12 @@ export function QrScanner({ onDecode, disabled }) {
       // Si el navegador no puede abrirla tal cual, se convierte a JPG primero.
       const text = await decodeQrFromFile(file).catch(async () => decodeQrFromFile(await normalizeImage(file)));
       if (text) onDecode(text, file);
-      else setError("No se encontró ningún código QR en la foto. Encuadra solo el código, con buena luz y sin reflejos.");
+      else {
+        setError(
+          "No se encontró un código QR válido en la foto (puede ser un QR decorativo o dibujado por IA, que no contiene datos).",
+        );
+        onNoQr?.(file);
+      }
     } catch (e) {
       setError(e.userMessage ?? "No se pudo leer la imagen.");
     } finally {

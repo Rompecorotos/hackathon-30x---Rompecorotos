@@ -226,6 +226,32 @@ export default function InvoiceForm({ onCreated }) {
     [applyExtracted],
   );
 
+  // Sin QR legible: si la foto muestra la factura, la IA la lee como en el modo Imagen.
+  const handleNoQr = useCallback(
+    async (photo) => {
+      setQrText(null);
+      setReview(null);
+      setExtracting(true);
+      try {
+        const image = await normalizeImage(photo);
+        const data = await api.extractInvoice(image, "imagen");
+        if (Object.keys(toPatch(data)).length === 0) {
+          setMessage({ type: "error", text: "La foto tampoco muestra los datos de la factura. Fotografía la factura completa o usa Imagen/PDF." });
+          return;
+        }
+        // Se registra como "Imagen": la IA revisará los datos contra esta foto.
+        setMode("imagen");
+        setSourceFile(image);
+        applyExtracted(data);
+      } catch (e) {
+        setMessage({ type: "error", text: e.userMessage ?? `${e.message} Completa los campos a mano o usa Imagen/PDF.` });
+      } finally {
+        setExtracting(false);
+      }
+    },
+    [applyExtracted],
+  );
+
   // ---- Validación y registro ---------------------------------------------
   // Valida el formato aquí; la IA del backend decide si los datos son correctos.
   function validate() {
@@ -355,7 +381,7 @@ export default function InvoiceForm({ onCreated }) {
 
         {mode === "qr" && (
           <div className="space-y-2">
-            <QrScanner onDecode={handleQr} disabled={busy} />
+            <QrScanner onDecode={handleQr} onNoQr={handleNoQr} disabled={busy} />
             <p className="break-all text-xs text-white/70">
               {extracting ? "Leyendo datos del QR..." : qrText ? `QR leído: ${qrText.slice(0, 120)}${qrText.length > 120 ? "…" : ""}` : "Foto del QR o de la factura con su QR (JPG, PNG o WebP)"}
             </p>
