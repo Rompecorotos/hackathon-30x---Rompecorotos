@@ -11,6 +11,8 @@ export class HttpError extends Error {
     public status: number,
     message: string,
     public fields?: Record<string, string>,
+    /** Datos adicionales que se incluyen en la respuesta de error (p. ej. la revisión de la IA). */
+    public extra?: Record<string, unknown>,
   ) {
     super(message);
   }
@@ -22,7 +24,10 @@ export function json<T>(data: T, status = 200) {
 
 export function errorResponse(error: unknown) {
   if (error instanceof HttpError) {
-    return json({ error: error.message, ...(error.fields && { fields: error.fields }) }, error.status);
+    return json(
+      { error: error.message, ...(error.fields && { fields: error.fields }), ...error.extra },
+      error.status,
+    );
   }
   console.error('[api] Error inesperado:', error);
   return json({ error: 'Error interno del servidor' }, 500);
@@ -75,6 +80,11 @@ export async function parseBody<S extends z.ZodType>(request: Request, schema: S
   } catch {
     throw new HttpError(400, 'Cuerpo JSON inválido');
   }
+  return validateInput(body, schema);
+}
+
+/** Valida un valor ya leído con un esquema zod y devuelve los errores por campo (422). */
+export function validateInput<S extends z.ZodType>(body: unknown, schema: S): z.infer<S> {
   const result = schema.safeParse(body);
   if (!result.success) {
     const fields: Record<string, string> = {};

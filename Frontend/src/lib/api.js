@@ -1,8 +1,9 @@
 export class ApiError extends Error {
-  constructor(status, message, fields = {}) {
+  constructor(status, message, fields = {}, data = null) {
     super(message);
     this.status = status;
     this.fields = fields;
+    this.data = data; // cuerpo completo de la respuesta (p. ej. `review` de la IA)
   }
 }
 
@@ -28,7 +29,7 @@ async function request(path, { method = 'GET', body, formData } = {}) {
       !data && (res.status === 502 || res.status === 504)
         ? 'El servidor de la API no está disponible. Comprueba que el backend esté arrancado.'
         : 'Ha ocurrido un error inesperado';
-    throw new ApiError(res.status, data?.error ?? fallback, data?.fields);
+    throw new ApiError(res.status, data?.error ?? fallback, data?.fields, data);
   }
   return data;
 }
@@ -45,12 +46,23 @@ export const api = {
   resetPassword: (password) => request('/auth/password/reset', { method: 'POST', body: { password } }),
 
   listInvoices: () => request('/invoices'),
-  createInvoice: (data) => request('/invoices', { method: 'POST', body: data }),
+  // Manual: JSON. Imagen/PDF/QR: multipart con el documento o el texto del QR para que la IA compare.
+  createInvoice: (data, { source = 'manual', file = null, qr = null } = {}) => {
+    if (source === 'manual') return request('/invoices', { method: 'POST', body: data });
+    const formData = new FormData();
+    formData.append('data', JSON.stringify(data));
+    formData.append('source', source);
+    if (file) formData.append('file', file);
+    if (qr) formData.append('qr', qr);
+    return request('/invoices', { method: 'POST', formData });
+  },
   updateInvoice: (id, data) => request(`/invoices/${id}`, { method: 'PATCH', body: data }),
   deleteInvoice: (id) => request(`/invoices/${id}`, { method: 'DELETE', body: {} }),
-  extractInvoice: (file) => {
+  // source: 'imagen' | 'pdf' (input = File) o 'qr' (input = texto leído del código).
+  extractInvoice: (input, source) => {
     const formData = new FormData();
-    formData.append('file', file);
+    formData.append('source', source);
+    formData.append(source === 'qr' ? 'qr' : 'file', input);
     return request('/invoices/extract', { method: 'POST', formData });
   },
 

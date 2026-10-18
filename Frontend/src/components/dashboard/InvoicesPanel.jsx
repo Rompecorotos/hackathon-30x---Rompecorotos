@@ -5,6 +5,7 @@ import { formatDate, formatMoney, LABELS, today } from '../../lib/format';
 import { Alert, EmptyRow, LinkButton, Panel, StatusBadge, Table } from './ui';
 
 const STATUSES = ['recibida', 'aprobada', 'pagada', 'rechazada'];
+const SOURCE_LABELS = { manual: 'Manual', imagen: 'Imagen', pdf: 'PDF', qr: 'Código QR' };
 
 export const InvoicesPanel = ({ invoices, onChange }) => {
   const [status, setStatus] = useState({ type: '', message: '' });
@@ -56,6 +57,12 @@ export const InvoicesPanel = ({ invoices, onChange }) => {
               <td className="px-3 py-2.5 font-medium text-slate-900">
                 {f.payee}
                 {f.concept && <p className="text-xs font-normal text-slate-500">{f.concept}</p>}
+                <p
+                  title={f.aiExplanation ?? undefined}
+                  className={`mt-0.5 text-[11px] font-normal ${f.aiVerdict === 'valida' ? 'text-emerald-600' : 'text-amber-600'}`}
+                >
+                  {f.aiVerdict === 'valida' ? '✓ Validada por IA' : '⚠ Sin revisión IA'} · {SOURCE_LABELS[f.source] ?? 'Manual'}
+                </p>
               </td>
               <td className="px-3 py-2.5 text-slate-900">{formatMoney(f.amountCents, f.currency)}</td>
               <td className="px-3 py-2.5">
