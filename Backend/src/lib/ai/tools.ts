@@ -160,7 +160,7 @@ export function createBillingTools(supabase: SupabaseClient) {
       execute: async ({ estado, limite }) => {
         let query = supabase
           .from('invoices')
-          .select('invoice_number, payee, amount_cents, currency, due_date, concept, status')
+          .select('invoice_number, payee, amount_cents, currency, due_date, concept, status, ai_verdict')
           .order('due_date')
           .limit(limite);
         if (estado) query = query.eq('status', estado);
@@ -172,6 +172,7 @@ export function createBillingTools(supabase: SupabaseClient) {
           due_date: string;
           concept: string | null;
           status: string;
+          ai_verdict: string;
         }[];
         const hoy = isoDay();
         return rows.map((f) => ({
@@ -180,6 +181,7 @@ export function createBillingTools(supabase: SupabaseClient) {
           importe: money(Number(f.amount_cents), f.currency),
           vencimiento: f.due_date,
           vencida: f.status !== 'pagada' && f.due_date < hoy,
+          revisionIA: f.ai_verdict === 'valida' ? 'validada por IA' : 'sin revisión IA',
           estado: f.status,
           concepto: f.concept ?? undefined,
         }));
