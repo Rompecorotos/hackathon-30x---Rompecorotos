@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { FormCard } from '../components/FormCard';
 import { InputField } from '../components/InputField';
 import { PageTransition } from '../components/PageTransition';
 import { api } from '../lib/api';
+import { passwordError, PASSWORD_HELP } from '../lib/password';
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -17,9 +18,16 @@ const FormAlert = ({ message }) =>
 export const ForgotPassword = () => {
   const [email, setEmail] = useState('');
   const [otpCode, setOtpCode] = useState('');
-  const [step, setStep] = useState(1); // Paso 1: Ingresar correo | Paso 2: Ingresar código OTP
+  // Paso 1: correo | Paso 2: abrir el enlace del email (o escribir el código) | Paso 3: nueva contraseña.
+  // El enlace del email vuelve por /api/auth/callback con ?paso=nueva y la sesión de recuperación ya abierta.
+  const [searchParams] = useSearchParams();
+  const [step, setStep] = useState(searchParams.get('paso') === 'nueva' ? 3 : 1);
   const [errors, setErrors] = useState({});
-  const [formError, setFormError] = useState('');
+  const [formError, setFormError] = useState(
+    searchParams.get('error') === 'enlace'
+      ? 'El enlace no es válido o ha caducado. Pide uno nuevo y ábrelo en este mismo navegador.'
+      : '',
+  );
   const [isLoading, setIsLoading] = useState(false);
   const [countdown, setCountdown] = useState(0);
   const [newPassword, setNewPassword] = useState('');
@@ -85,8 +93,8 @@ export const ForgotPassword = () => {
   const handleSubmitPassword = async (e) => {
     e.preventDefault();
     const nextErrors = {};
-    if (newPassword.length < 8 || !/[A-Za-z]/.test(newPassword) || !/\d/.test(newPassword))
-      nextErrors.newPassword = 'Mínimo 8 caracteres, con letras y números';
+    const pwError = passwordError(newPassword);
+    if (pwError) nextErrors.newPassword = pwError;
     if (confirmPassword !== newPassword) nextErrors.confirmPassword = 'Las contraseñas no coinciden';
     setErrors(nextErrors);
     setFormError('');
@@ -192,7 +200,7 @@ export const ForgotPassword = () => {
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
                 error={errors.newPassword}
-                helpText="Mínimo 8 caracteres, con letras y números"
+                helpText={PASSWORD_HELP}
                 required
                 disabled={isLoading}
               />
@@ -209,8 +217,8 @@ export const ForgotPassword = () => {
             </FormCard>
           ) : (
             <FormCard
-              title="Verifica tu identidad"
-              subtitle={`Introduce el código enviado a ${email}`}
+              title="Revisa tu correo"
+              subtitle={`Te enviamos un email a ${email}. Abre el enlace "Reset password" desde este mismo navegador para elegir tu nueva contraseña. Si el email trae un código, escríbelo aquí.`}
               onSubmit={handleSubmitOtp}
               submitText="Verificar Código"
               isLoading={isLoading}

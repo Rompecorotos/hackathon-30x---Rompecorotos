@@ -137,11 +137,11 @@ export default function InvoiceForm({ onCreated }) {
   };
 
   // Aplica los datos leídos por la IA (o el lector local) al formulario.
-  const applyExtracted = useCallback((data) => {
+  const applyExtracted = useCallback((data, emptyText) => {
     const patch = toPatch(data);
     const keys = Object.keys(patch);
     if (keys.length === 0) {
-      setMessage({ type: "error", text: "No pude leer datos en esa factura. Completa los campos a mano." });
+      setMessage({ type: "error", text: emptyText ?? "No pude leer datos en esa factura. Completa los campos a mano." });
       return;
     }
     setForm((f) => ({ ...f, ...patch }));
@@ -193,14 +193,58 @@ export default function InvoiceForm({ onCreated }) {
 
   // ---- Código QR ----------------------------------------------------------
   const handleQr = useCallback(
-    async (text) => {
+    async (text, photo) => {
       setQrText(text);
+      setSourceFile(null);
+      setReview(null);
+      setMessage(null);
+      setExtracting(true);
+      try {
+        const fromQr = await api.extractInvoice(text, "qr").catch(() => ({}));
+        let data = fromQr;
+        // Muchos QR solo traen una referencia (p. ej. "TT-…"): si faltan datos clave y hay
+        // foto, la IA lee también la imagen. La factura visible manda; el QR solo rellena huecos
+        // (así una referencia de transacción no sustituye al número de factura real).
+        const missing = !fromQr.beneficiario || fromQr.monto == null || !fromQr.fecha_vencimiento;
+        if (missing && photo) {
+          const image = await normalizeImage(photo);
+          const fromImage = await api.extractInvoice(image, "imagen").catch(() => ({}));
+          const filled = (o) => Object.fromEntries(Object.entries(o).filter(([, v]) => v != null && v !== ""));
+          data = { ...filled(fromQr), ...filled(fromImage) };
+          if (Object.values(fromImage).some((v) => v != null && v !== "")) setSourceFile(image); // la IA la usará al revisar
+        }
+        applyExtracted(
+          data,
+          "El QR se leyó, pero solo contiene una referencia y la foto no muestra los datos de la factura. Fotografía la factura completa (con el QR) o usa Imagen/PDF.",
+        );
+      } catch (e) {
+        setMessage({ type: "error", text: e.userMessage ?? `${e.message} Puedes completar los campos a mano; el QR se usará para la revisión.` });
+      } finally {
+        setExtracting(false);
+      }
+    },
+    [applyExtracted],
+  );
+
+  // Sin QR legible: si la foto muestra la factura, la IA la lee como en el modo Imagen.
+  const handleNoQr = useCallback(
+    async (photo) => {
+      setQrText(null);
       setReview(null);
       setExtracting(true);
       try {
-        applyExtracted(await api.extractInvoice(text, "qr"));
+        const image = await normalizeImage(photo);
+        const data = await api.extractInvoice(image, "imagen");
+        if (Object.keys(toPatch(data)).length === 0) {
+          setMessage({ type: "error", text: "La foto tampoco muestra los datos de la factura. Fotografía la factura completa o usa Imagen/PDF." });
+          return;
+        }
+        // Se registra como "Imagen": la IA revisará los datos contra esta foto.
+        setMode("imagen");
+        setSourceFile(image);
+        applyExtracted(data);
       } catch (e) {
-        setMessage({ type: "error", text: `${e.message} Puedes completar los campos a mano; el QR se usará para la revisión.` });
+        setMessage({ type: "error", text: e.userMessage ?? `${e.message} Completa los campos a mano o usa Imagen/PDF.` });
       } finally {
         setExtracting(false);
       }
@@ -337,9 +381,9 @@ export default function InvoiceForm({ onCreated }) {
 
         {mode === "qr" && (
           <div className="space-y-2">
-            <QrScanner onDecode={handleQr} disabled={busy} />
+            <QrScanner onDecode={handleQr} onNoQr={handleNoQr} disabled={busy} />
             <p className="break-all text-xs text-white/70">
-              {extracting ? "Leyendo datos del QR..." : qrText ? `QR leído: ${qrText.slice(0, 120)}${qrText.length > 120 ? "…" : ""}` : `Foto del QR: PNG o JPG · máx. ${MAX_FILE_MB} MB`}
+              {extracting ? "Leyendo datos del QR..." : qrText ? `QR leído: ${qrText.slice(0, 120)}${qrText.length > 120 ? "…" : ""}` : "Foto del QR o de la factura con su QR (JPG, PNG o WebP)"}
             </p>
           </div>
         )}

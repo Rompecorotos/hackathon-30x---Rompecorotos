@@ -7,9 +7,11 @@ export const MAX_QR_CHARS = 4000;
 export type InvoiceSource = 'manual' | 'imagen' | 'pdf' | 'qr';
 export type InvoiceDocument = { bytes: Uint8Array; mediaType: string };
 
-const TYPES_BY_SOURCE: Record<'imagen' | 'pdf', string[]> = {
+const TYPES_BY_SOURCE: Record<'imagen' | 'pdf' | 'qr', string[]> = {
   imagen: ['image/png', 'image/jpeg'],
   pdf: ['application/pdf'],
+  // En modo QR se puede adjuntar la foto (p. ej. si el QR solo trae una referencia).
+  qr: ['image/png', 'image/jpeg'],
 };
 
 export const isMultipart = (request: Request) =>
@@ -29,7 +31,7 @@ export async function readMultipart(request: Request): Promise<FormData> {
 export async function readDocument(file: FormDataEntryValue | null, source: InvoiceSource): Promise<InvoiceDocument | null> {
   if (file === null) return null;
   if (!(file instanceof File)) throw new HttpError(422, 'Archivo inválido', { file: 'Sube un archivo válido' });
-  if (source !== 'imagen' && source !== 'pdf') throw new HttpError(422, 'Este modo no admite archivos');
+  if (source === 'manual') throw new HttpError(422, 'Este modo no admite archivos');
   if (!TYPES_BY_SOURCE[source].includes(file.type)) {
     throw new HttpError(415, source === 'pdf' ? 'El archivo debe ser un PDF' : 'La imagen debe ser PNG o JPG');
   }

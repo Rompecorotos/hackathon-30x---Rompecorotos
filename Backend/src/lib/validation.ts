@@ -20,8 +20,11 @@ export const registerSchema = z.object({
     .string('La contraseña es obligatoria')
     .min(8, 'La contraseña debe tener al menos 8 caracteres')
     .max(72, 'La contraseña no puede superar 72 caracteres')
-    .regex(/[A-Za-z]/, 'La contraseña debe incluir al menos una letra')
-    .regex(/\d/, 'La contraseña debe incluir al menos un número'),
+    // Distingue mayúsculas/minúsculas y exige caracteres especiales (nunca se normaliza ni se recorta).
+    .regex(/[a-zñ]/, 'La contraseña debe incluir al menos una letra minúscula')
+    .regex(/[A-ZÑ]/, 'La contraseña debe incluir al menos una letra mayúscula')
+    .regex(/\d/, 'La contraseña debe incluir al menos un número')
+    .regex(/[^A-Za-z0-9ñÑ\s]/, 'La contraseña debe incluir al menos un carácter especial (p. ej. ! @ # $ % & *)'),
 });
 
 export const loginSchema = z.object({

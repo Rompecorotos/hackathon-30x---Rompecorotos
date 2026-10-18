@@ -31,7 +31,8 @@ function instructions(source: InvoiceSource, today: string) {
     source === 'manual'
       ? 'No hay documento: revisa que los datos sean plausibles y coherentes entre sí.'
       : source === 'qr'
-        ? 'Se adjunta el contenido leído del código QR de la factura: los datos deben coincidir con él.'
+        ? `Se adjunta el contenido leído del código QR de la factura (y, si existe, una foto). Los datos deben coincidir con lo que el QR y la foto contengan.
+Si el QR solo trae un identificador o referencia (p. ej. "TT-<código>", un enlace o datos bancarios) y no los datos de la factura, eso NO es una discrepancia: verifica los datos con la foto si hay, o su plausibilidad como en una carga manual.`
         : 'Se adjunta el documento original de la factura: los datos deben coincidir con él.';
   return `Eres el revisor de facturas de Bankly. Decide si los datos de una factura por pagar son correctos antes de registrarla.
 Fecha de hoy: ${today}. ${reference}
