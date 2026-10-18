@@ -5,6 +5,7 @@ import { Footer } from './layouts/Footer';
 import { AppRoutes } from './routes/AppRoutes';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { ChatWidget } from './components/ChatWidget';
+import { PlanModal } from './components/PlanModal';
 
 function AppShell() {
   const { isLoggedIn, isLoading } = useAuth();
@@ -23,6 +24,7 @@ function AppShell() {
 
       {/* Asistente IA: solo para usuarios autenticados (protege la cuota gratuita) */}
       {isLoggedIn && <ChatWidget />}
+      {isLoggedIn && <PlanModal />}
     </div>
   );
 }
