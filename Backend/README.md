@@ -7,7 +7,7 @@ en cookies httpOnly y el navegador nunca ve claves ni tokens de Supabase.
 ### Puesta en marcha
 
 1. **Supabase**: crea un proyecto y ejecuta, en orden, las migraciones de `supabase/migrations/`
-   (`..._profiles.sql`, `..._payments.sql` y `..._ai_requests.sql`) desde el SQL Editor, o `supabase link` + `supabase db push`.
+   (`..._profiles.sql`, `..._payments.sql`, `..._ai_requests.sql` e `..._invoices.sql`) desde el SQL Editor, o `supabase link` + `supabase db push`.
 2. En *Authentication > URL Configuration* añade `http://localhost:5173/api/auth/callback`
    a **Redirect URLs** (y la URL equivalente de producción).
 3. `cp .env.example .env.local` y completa `SUPABASE_URL` y `SUPABASE_PUBLISHABLE_KEY`
@@ -34,6 +34,14 @@ en cookies httpOnly y el navegador nunca ve claves ni tokens de Supabase.
 | GET/POST | `/api/payments` | Sí | Listar (`?status=`) / registrar `{subscriptionId, status, dueDate, failureReason?, attemptNumber?}` |
 | PATCH/DELETE | `/api/payments/:id` | Sí | Cambiar estado / eliminar |
 | POST | `/api/ai/chat` | Sí | Asistente IA (Gemini, streaming de AI SDK) |
+| GET/POST | `/api/invoices` | Sí | Listar (`?status=`) / registrar factura `{invoiceNumber, payee, amountCents, currency, dueDate, concept?}` (entra como `recibida`) |
+| PATCH/DELETE | `/api/invoices/:id` | Sí | Cambiar `status` (recibida/aprobada/pagada/rechazada), vencimiento o concepto / eliminar |
+| POST | `/api/invoices/extract` | Sí | `multipart` con `file` (PDF/PNG/JPG ≤10 MB) → campos leídos con Gemini para autorrellenar |
+| POST | `/api/auth/password/forgot` | — | `{email}` → Supabase envía el código OTP de recuperación |
+| POST | `/api/auth/password/verify` | — | `{email, token}` → valida el código e inicia sesión temporal |
+| POST | `/api/auth/password/reset` | Sí | `{password}` → nueva contraseña |
+
+> Recuperación por código: en Supabase, *Authentication → Emails → Reset Password*, la plantilla debe incluir `{{ .Token }}`.
 
 ### Asistente IA
 
