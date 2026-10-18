@@ -4,6 +4,7 @@ import { FormCard } from '../components/FormCard';
 import { InputField } from '../components/InputField';
 import { PageTransition } from '../components/PageTransition';
 import { api } from '../lib/api';
+import { passwordError, PASSWORD_HELP } from '../lib/password';
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -85,8 +86,8 @@ export const ForgotPassword = () => {
   const handleSubmitPassword = async (e) => {
     e.preventDefault();
     const nextErrors = {};
-    if (newPassword.length < 8 || !/[A-Za-z]/.test(newPassword) || !/\d/.test(newPassword))
-      nextErrors.newPassword = 'Mínimo 8 caracteres, con letras y números';
+    const pwError = passwordError(newPassword);
+    if (pwError) nextErrors.newPassword = pwError;
     if (confirmPassword !== newPassword) nextErrors.confirmPassword = 'Las contraseñas no coinciden';
     setErrors(nextErrors);
     setFormError('');
@@ -192,7 +193,7 @@ export const ForgotPassword = () => {
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
                 error={errors.newPassword}
-                helpText="Mínimo 8 caracteres, con letras y números"
+                helpText={PASSWORD_HELP}
                 required
                 disabled={isLoading}
               />

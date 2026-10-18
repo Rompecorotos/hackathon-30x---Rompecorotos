@@ -4,6 +4,7 @@ import { FormCard } from "../components/FormCard";
 import { InputField } from "../components/InputField";
 import { PageTransition } from "../components/PageTransition";
 import { useAuth } from "../context/AuthContext";
+import { passwordError, PASSWORD_HELP } from "../lib/password";
 
 export const Register = () => {
   const { register } = useAuth();
@@ -45,15 +46,8 @@ export const Register = () => {
       er.nombre = "El nombre debe tener al menos 2 caracteres";
     else if (fullName.length > 120) er.nombre = "El nombre es demasiado largo";
 
-    const pw = formData.password;
-    if (pw.length < 8)
-      er.password = "La contraseña debe tener al menos 8 caracteres";
-    else if (pw.length > 72)
-      er.password = "La contraseña no puede superar 72 caracteres";
-    else if (!/[A-Za-z]/.test(pw))
-      er.password = "La contraseña debe incluir al menos una letra";
-    else if (!/\d/.test(pw))
-      er.password = "La contraseña debe incluir al menos un número";
+    const pwError = passwordError(formData.password);
+    if (pwError) er.password = pwError;
 
     if (formData.password !== formData.confirmPassword) {
       er.confirmPassword = "Las contraseñas no coinciden. Por favor verifica.";
@@ -243,7 +237,7 @@ export const Register = () => {
                 onChange={handleChange}
                 placeholder="••••••••"
                 error={errors.password}
-                helpText="Mínimo 8 caracteres, con una letra y un número"
+                helpText={PASSWORD_HELP}
                 required
               />
               <InputField
