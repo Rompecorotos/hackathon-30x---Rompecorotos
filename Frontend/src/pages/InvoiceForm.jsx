@@ -1,15 +1,12 @@
 import { useRef, useState } from "react";
-import { supabase, supabaseReady } from "../lib/supabase";
+import { api } from "../lib/api";
 import { extractInvoiceFromPdf } from "../lib/extractInvoice";
 
 // ---------------------------------------------------------------------------
 // Configuración
 // ---------------------------------------------------------------------------
-// "local": lee el PDF en el navegador (sin Supabase ni IA). Solo PDFs con texto.
-// "edge":  usa la Edge Function con IA (lee cualquier formato, incluso imágenes).
-//          Cuando tu compañero la tenga lista, cambia a "edge".
-const EXTRACTION_MODE = "local";
-const EDGE_FUNCTION = "extraer-factura";
+// Lectura con IA en el backend (POST /api/invoices/extract, Gemini): PDF e imágenes.
+// Si la IA no está disponible, los PDF con texto se leen en el navegador.
 const MAX_FILE_MB = 10;
 const ACCEPTED = ["application/pdf", "image/png", "image/jpeg"];
 
@@ -17,7 +14,7 @@ const ACCEPTED = ["application/pdf", "image/png", "image/jpeg"];
 // azul #353755 · blanco #FFFFFF · gris #E0E4EE · verde #5BD3C7
 
 // ---------------------------------------------------------------------------
-// Contrato de la Edge Function "extraer-factura":
+// Contrato de POST /api/invoices/extract (antes Edge Function "extraer-factura"):
 //   Recibe: FormData con el campo "file" (PDF o imagen).
 //   Devuelve JSON (todos los campos opcionales):
 //   {
@@ -28,7 +25,7 @@ const ACCEPTED = ["application/pdf", "image/png", "image/jpeg"];
 //     "fecha_vencimiento": "2026-11-05",   // formato YYYY-MM-DD
 //     "concepto": "100 manzanas"
 //   }
-// La clave del LLM vive como secreto dentro de la Edge Function, nunca aquí.
+// La clave del LLM vive solo en el servidor (Backend/.env.local), nunca aquí.
 // ---------------------------------------------------------------------------
 
 const MONEDAS = ["USD", "COP", "MXN", "ARS", "BRL", "EUR"];
@@ -43,26 +40,16 @@ const INITIAL = {
 };
 
 async function extractFromFile(file) {
-  // Modo IA: Edge Function de Supabase
-  if (EXTRACTION_MODE === "edge" && supabaseReady) {
-    const body = new FormData();
-    body.append("file", file);
-    const { data, error } = await supabase.functions.invoke(EDGE_FUNCTION, {
-      body,
-    });
-    if (error) throw error;
-    return data;
+  try {
+    // Lectura con IA en el backend (PDF e imágenes)
+    return await api.extractInvoice(file);
+  } catch (aiError) {
+    // Respaldo: los PDF con texto se pueden leer en el navegador sin IA
+    if (file.type === "application/pdf") return extractInvoiceFromPdf(file);
+    const err = new Error("IMAGEN");
+    err.userMessage = `${aiError.message} Sube un PDF o completa los datos a mano.`;
+    throw err;
   }
-
-  // Modo local: lectura del PDF en el navegador
-  if (file.type === "application/pdf") {
-    return extractInvoiceFromPdf(file);
-  }
-
-  const err = new Error("IMAGEN");
-  err.userMessage =
-    "Las imágenes necesitan lectura con IA (aún no disponible). Sube un PDF o completa los datos a mano.";
-  throw err;
 }
 
 export default function InvoiceForm({ onCreated }) {
@@ -118,7 +105,7 @@ export default function InvoiceForm({ onCreated }) {
         patch.numero_factura = String(data.numero_factura);
       if (data.beneficiario) patch.beneficiario = String(data.beneficiario);
       if (
-        data.monto !== undefined &&
+        data.monto != null &&
         data.monto !== "" &&
         !Number.isNaN(Number(data.monto))
       )
@@ -188,38 +175,34 @@ export default function InvoiceForm({ onCreated }) {
     if (!validate()) return;
 
     setSaving(true);
-    const payload = {
-      numero_factura: form.numero_factura.trim(),
-      beneficiario: form.beneficiario.trim(),
-      monto: Number(form.monto),
-      moneda: form.moneda,
-      fecha_vencimiento: form.fecha_vencimiento,
-      concepto: form.concepto.trim() || null,
-      estado: "recibida", // el agente la tomará desde aquí
-    };
-
-    let error = null;
-    if (supabaseReady) {
-      ({ error } = await supabase.from("facturas").insert(payload));
-    } else {
-      // Modo demo: no hay Supabase, solo mostramos lo que se guardaría.
-      await new Promise((r) => setTimeout(r, 600));
-      console.log("Factura (modo demo, no guardada):", payload);
-    }
-    setSaving(false);
-
-    if (error) {
-      setMessage({
-        type: "error",
-        text: `No se pudo guardar: ${error.message}`,
+    // El backend guarda la factura con estado "recibida": el agente la tomará desde aquí.
+    try {
+      await api.createInvoice({
+        invoiceNumber: form.numero_factura.trim(),
+        payee: form.beneficiario.trim(),
+        amountCents: Math.round(Number(form.monto) * 100),
+        currency: form.moneda,
+        dueDate: form.fecha_vencimiento,
+        concept: form.concepto.trim() || null,
       });
+    } catch (error) {
+      // Errores por campo del backend -> nombres de este formulario
+      const f = error.fields ?? {};
+      setErrors({
+        numero_factura: f.invoiceNumber,
+        beneficiario: f.payee,
+        monto: f.amountCents,
+        fecha_vencimiento: f.dueDate,
+        concepto: f.concept,
+      });
+      setMessage({ type: "error", text: `No se pudo guardar: ${error.message}` });
       return;
+    } finally {
+      setSaving(false);
     }
     setMessage({
       type: "ok",
-      text: supabaseReady
-        ? "Factura registrada. El agente la revisará pronto."
-        : "Modo demo: la factura no se guardó (aún no hay Supabase). Mira la consola.",
+      text: "Factura registrada. El agente la revisará pronto.",
     });
     setForm(INITIAL);
     setErrors({});

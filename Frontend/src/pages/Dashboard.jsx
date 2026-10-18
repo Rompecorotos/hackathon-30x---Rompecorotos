@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { CustomersPanel } from '../components/dashboard/CustomersPanel';
 import { SubscriptionsPanel } from '../components/dashboard/SubscriptionsPanel';
 import { PaymentsPanel } from '../components/dashboard/PaymentsPanel';
+import { InvoicesPanel } from '../components/dashboard/InvoicesPanel';
 import { Alert } from '../components/dashboard/ui';
 import { RouteLoader } from '../routes/RouteLoader';
 
@@ -11,12 +12,18 @@ const TABS = [
   { id: 'customers', label: 'Clientes' },
   { id: 'subscriptions', label: 'Suscripciones' },
   { id: 'payments', label: 'Cobros' },
+  { id: 'invoices', label: 'Facturas' },
 ];
 
 async function fetchAll() {
   try {
-    const [c, s, p] = await Promise.all([api.listCustomers(), api.listSubscriptions(), api.listPayments()]);
-    return { data: { customers: c.customers, subscriptions: s.subscriptions, payments: p.payments } };
+    const [c, s, p, i] = await Promise.all([
+      api.listCustomers(),
+      api.listSubscriptions(),
+      api.listPayments(),
+      api.listInvoices(),
+    ]);
+    return { data: { customers: c.customers, subscriptions: s.subscriptions, payments: p.payments, invoices: i.invoices } };
   } catch (err) {
     return { error: err.message };
   }
@@ -25,7 +32,7 @@ async function fetchAll() {
 export const Dashboard = () => {
   const { profile } = useAuth();
   const [tab, setTab] = useState('customers');
-  const [data, setData] = useState({ customers: [], subscriptions: [], payments: [] });
+  const [data, setData] = useState({ customers: [], subscriptions: [], payments: [], invoices: [] });
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -58,7 +65,7 @@ export const Dashboard = () => {
           Mi Panel{profile?.fullName ? ` · ${profile.fullName}` : ''}
         </h1>
         <p className="text-sm text-slate-500">
-          Gestiona tus clientes, suscripciones y cobros. Pregunta al asistente IA (abajo a la derecha) para analizarlos.
+          Gestiona tus clientes, suscripciones, cobros y facturas. Pregunta al asistente IA (abajo a la derecha) para analizarlos.
         </p>
       </div>
 
@@ -101,6 +108,7 @@ export const Dashboard = () => {
           {tab === 'subscriptions' && (
             <SubscriptionsPanel customers={data.customers} subscriptions={data.subscriptions} onChange={load} />
           )}
+          {tab === 'invoices' && <InvoicesPanel invoices={data.invoices} onChange={load} />}
           {tab === 'payments' && (
             <PaymentsPanel subscriptions={data.subscriptions} payments={data.payments} onChange={load} />
           )}

@@ -9,6 +9,7 @@ const TOOL_LABELS = {
   'tool-cobrosFallidos': 'Revisando cobros fallidos',
   'tool-proximosCobros': 'Consultando próximos cobros',
   'tool-buscarCliente': 'Buscando cliente',
+  'tool-facturas': 'Revisando facturas',
 };
 
 const SUGGESTIONS = [
