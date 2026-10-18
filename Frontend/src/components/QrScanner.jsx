@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import jsQR from "jsqr";
+import { looksLikeImage, normalizeImage } from "../lib/image";
 
-const MAX_BYTES = 4 * 1024 * 1024;
 
 // Decodifica el QR de un canvas con la imagen ya dibujada.
 function decodeCanvas(canvas) {
@@ -80,14 +80,14 @@ export function QrScanner({ onDecode, disabled }) {
     ev.target.value = "";
     if (!file) return;
     setError("");
-    if (!["image/png", "image/jpeg"].includes(file.type)) return setError("La foto del QR debe ser PNG o JPG.");
-    if (file.size > MAX_BYTES) return setError("La imagen supera el máximo de 4 MB.");
+    if (!looksLikeImage(file)) return setError("Sube una foto (JPG, PNG o WebP) del código QR.");
     try {
-      const text = await decodeImageFile(file);
+      // Igual que en el modo Imagen: cualquier foto se convierte a JPG ≤ 4 MB.
+      const text = await decodeImageFile(await normalizeImage(file));
       if (text) onDecode(text);
-      else setError("No se encontró ningún código QR en la imagen. Prueba con una foto más nítida.");
-    } catch {
-      setError("No se pudo leer la imagen.");
+      else setError("No se encontró ningún código QR en la imagen. Prueba con una foto más nítida o recortada al código.");
+    } catch (e) {
+      setError(e.userMessage ?? "No se pudo leer la imagen.");
     }
   }
 
@@ -114,7 +114,7 @@ export function QrScanner({ onDecode, disabled }) {
         <button type="button" disabled={disabled || scanning} onClick={() => fileRef.current?.click()} className={button}>
           Subir foto del QR
         </button>
-        <input ref={fileRef} type="file" accept="image/png,image/jpeg" onChange={handleFile} className="hidden" />
+        <input ref={fileRef} type="file" accept="image/*" onChange={handleFile} className="hidden" />
       </div>
       {error && <p className="text-xs text-red-300">{error}</p>}
     </div>
