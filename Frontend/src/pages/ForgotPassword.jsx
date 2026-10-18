@@ -3,8 +3,16 @@ import { Link } from 'react-router-dom';
 import { FormCard } from '../components/FormCard';
 import { InputField } from '../components/InputField';
 import { PageTransition } from '../components/PageTransition';
+import { api } from '../lib/api';
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+const FormAlert = ({ message }) =>
+  message ? (
+    <p role="alert" className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
+      {message}
+    </p>
+  ) : null;
 
 export const ForgotPassword = () => {
   const [email, setEmail] = useState('');
@@ -14,6 +22,8 @@ export const ForgotPassword = () => {
   const [formError, setFormError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [countdown, setCountdown] = useState(0);
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
 
   // Manejador del temporizador de 1 minuto (60 segundos)
   useEffect(() => {
@@ -32,16 +42,24 @@ export const ForgotPassword = () => {
       setErrors({ email: 'Por favor, introduce un correo electrónico válido' });
       return;
     }
+    await sendCode();
+  };
+
+  // Pide al backend que Supabase envíe el código OTP al correo.
+  const sendCode = async () => {
     setErrors({});
     setFormError('');
     setIsLoading(true);
-
-    // Simulamos petición al backend para enviar el código
-    setTimeout(() => {
-      setIsLoading(false);
+    try {
+      await api.forgotPassword(email.trim());
       setStep(2); // Pasamos al siguiente estado/input del código
       setCountdown(60); // Activamos el bloqueo de 1 minuto (60 segundos)
-    }, 1000);
+    } catch (err) {
+      setErrors(err.fields ?? {});
+      setFormError(err.message);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleSubmitOtp = async (e) => {
@@ -51,13 +69,39 @@ export const ForgotPassword = () => {
       return;
     }
     setErrors({});
+    setFormError('');
     setIsLoading(true);
-
-    // Simulamos verificación del código OTP
-    setTimeout(() => {
+    try {
+      await api.verifyPasswordCode(email.trim(), otpCode.trim());
+      setStep(3);
+    } catch (err) {
+      setErrors({ otpCode: err.fields?.otpCode ?? err.fields?.token });
+      setFormError(err.message);
+    } finally {
       setIsLoading(false);
-      alert('¡Código verificado con éxito! Ya puedes cambiar tu contraseña.');
-    }, 1000);
+    }
+  };
+
+  const handleSubmitPassword = async (e) => {
+    e.preventDefault();
+    const nextErrors = {};
+    if (newPassword.length < 8 || !/[A-Za-z]/.test(newPassword) || !/\d/.test(newPassword))
+      nextErrors.newPassword = 'Mínimo 8 caracteres, con letras y números';
+    if (confirmPassword !== newPassword) nextErrors.confirmPassword = 'Las contraseñas no coinciden';
+    setErrors(nextErrors);
+    setFormError('');
+    if (Object.keys(nextErrors).length) return;
+
+    setIsLoading(true);
+    try {
+      await api.resetPassword(newPassword);
+      // La verificación del código dejó una sesión iniciada: entramos directamente.
+      window.location.assign('/dashboard');
+    } catch (err) {
+      setErrors({ newPassword: err.fields?.password });
+      setFormError(err.message);
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -113,6 +157,7 @@ export const ForgotPassword = () => {
               submitText={countdown > 0 ? `Reenviar en ${countdown}s` : "Enviar Código"}
               isLoading={isLoading}
             >
+              <FormAlert message={formError} />
               <InputField
                 label="Correo Electrónico"
                 type="email"
@@ -131,6 +176,37 @@ export const ForgotPassword = () => {
                 </div>
               )}
             </FormCard>
+          ) : step === 3 ? (
+            <FormCard
+              title="Nueva contraseña"
+              subtitle="Elige una contraseña nueva para tu cuenta"
+              onSubmit={handleSubmitPassword}
+              submitText="Guardar contraseña"
+              isLoading={isLoading}
+            >
+              <FormAlert message={formError} />
+              <InputField
+                label="Nueva contraseña"
+                type="password"
+                name="newPassword"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                error={errors.newPassword}
+                helpText="Mínimo 8 caracteres, con letras y números"
+                required
+                disabled={isLoading}
+              />
+              <InputField
+                label="Confirmar contraseña"
+                type="password"
+                name="confirmPassword"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                error={errors.confirmPassword}
+                required
+                disabled={isLoading}
+              />
+            </FormCard>
           ) : (
             <FormCard
               title="Verifica tu identidad"
@@ -139,6 +215,7 @@ export const ForgotPassword = () => {
               submitText="Verificar Código"
               isLoading={isLoading}
             >
+              <FormAlert message={formError} />
               {/* Input de Correo bloqueado */}
               <InputField
                 label="Correo Electrónico"
@@ -170,8 +247,8 @@ export const ForgotPassword = () => {
                 </button>
                 <button
                   type="button"
-                  disabled={countdown > 0}
-                  onClick={() => setCountdown(60)}
+                  disabled={countdown > 0 || isLoading}
+                  onClick={sendCode}
                   className={`font-semibold ${countdown > 0 ? 'text-slate-400 cursor-not-allowed' : 'text-indigo-600 hover:text-indigo-800'}`}
                 >
                   {countdown > 0 ? `Reenviar código (${countdown}s)` : 'Reenviar código'}
