@@ -150,7 +150,7 @@ export const ChatWidget = () => {
         type="button"
         onClick={() => setIsOpen((v) => !v)}
         aria-label={isOpen ? 'Cerrar asistente' : 'Abrir asistente IA'}
-        className="flex h-14 w-14 items-center justify-center rounded-full bg-[#2B2E4A] text-white shadow-lg transition hover:scale-105 hover:bg-slate-800"
+        className="flex h-14 w-14 items-center justify-center rounded-full bg-[#1CB5C9] text-white shadow-lg shadow-[#1CB5C9]/30 transition hover:scale-105 hover:bg-[#169FB1]"
       >
         {isOpen ? (
           <span className="text-2xl leading-none">×</span>

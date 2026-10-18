@@ -8,6 +8,8 @@ import { InvoicesPanel } from '../components/dashboard/InvoicesPanel';
 import { Alert } from '../components/dashboard/ui';
 import { RouteLoader } from '../routes/RouteLoader';
 
+const REFRESH_MS = 8000;
+
 const TABS = [
   { id: 'customers', label: 'Clientes' },
   { id: 'subscriptions', label: 'Suscripciones' },
@@ -17,13 +19,23 @@ const TABS = [
 
 async function fetchAll() {
   try {
-    const [c, s, p, i] = await Promise.all([
+    const [c, s, p, i, r] = await Promise.all([
       api.listCustomers(),
       api.listSubscriptions(),
       api.listPayments(),
       api.listInvoices(),
+      api.listInvoiceRejections().catch(() => ({ total: 0, rejections: [] })), // tolera la migración pendiente
     ]);
-    return { data: { customers: c.customers, subscriptions: s.subscriptions, payments: p.payments, invoices: i.invoices } };
+    return {
+      data: {
+        customers: c.customers,
+        subscriptions: s.subscriptions,
+        payments: p.payments,
+        invoices: i.invoices,
+        rejections: r.rejections,
+        rejectionsTotal: r.total,
+      },
+    };
   } catch (err) {
     return { error: err.message };
   }
@@ -32,26 +44,38 @@ async function fetchAll() {
 export const Dashboard = () => {
   const { profile } = useAuth();
   const [tab, setTab] = useState('customers');
-  const [data, setData] = useState({ customers: [], subscriptions: [], payments: [], invoices: [] });
+  const [data, setData] = useState({ customers: [], subscriptions: [], payments: [], invoices: [], rejections: [], rejectionsTotal: 0 });
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
+  const [updatedAt, setUpdatedAt] = useState(null);
 
   const applyResult = useCallback((result) => {
     if (result.error) setError(result.error);
     else {
       setData(result.data);
       setError('');
+      setUpdatedAt(new Date());
     }
     setIsLoading(false);
   }, []);
 
   const load = useCallback(async () => applyResult(await fetchAll()), [applyResult]);
 
+  // Tiempo real: refresca cada 8 s mientras la pestaña está visible y al volver a ella.
   useEffect(() => {
     let active = true;
-    fetchAll().then((result) => active && applyResult(result));
+    const refresh = () => {
+      if (document.visibilityState === 'visible') fetchAll().then((result) => active && applyResult(result));
+    };
+    refresh();
+    const timer = setInterval(refresh, REFRESH_MS);
+    document.addEventListener('visibilitychange', refresh);
+    window.addEventListener('focus', refresh);
     return () => {
       active = false;
+      clearInterval(timer);
+      document.removeEventListener('visibilitychange', refresh);
+      window.removeEventListener('focus', refresh);
     };
   }, [applyResult]);
 
@@ -69,17 +93,31 @@ export const Dashboard = () => {
         </p>
       </div>
 
-      <div className="grid grid-cols-3 gap-3 rounded-2xl border border-slate-100 bg-white p-4 shadow-sm sm:gap-6 sm:p-6">
-        {[
-          ['Clientes', data.customers.length],
-          ['Suscripciones activas', active],
-          ['Cobros fallidos', failed],
-        ].map(([label, value]) => (
-          <div key={label} className="text-center">
-            <p className="text-2xl font-black text-slate-900 sm:text-3xl">{isLoading ? '–' : value}</p>
-            <p className="mt-1 text-[10px] font-semibold uppercase tracking-wider text-slate-500 sm:text-xs">{label}</p>
-          </div>
-        ))}
+      <div className="space-y-2">
+        <div className="grid grid-cols-2 gap-3 rounded-2xl border border-slate-100 bg-white p-4 shadow-sm sm:grid-cols-4 sm:gap-6 sm:p-6">
+          {[
+            ['Clientes', data.customers.length],
+            ['Suscripciones activas', active],
+            ['Cobros fallidos', failed],
+            ['Facturas incorrectas', data.rejectionsTotal, 'text-red-600', () => setTab('invoices')],
+          ].map(([label, value, color = 'text-slate-900', onClick]) => (
+            <button
+              key={label}
+              type="button"
+              onClick={onClick}
+              disabled={!onClick}
+              title={onClick ? 'Ver las facturas rechazadas por la IA' : undefined}
+              className="rounded-xl text-center transition enabled:hover:bg-slate-50 disabled:cursor-default"
+            >
+              <p className={`text-2xl font-black sm:text-3xl ${value > 0 ? color : 'text-slate-900'}`}>{isLoading ? '–' : value}</p>
+              <p className="mt-1 text-[10px] font-semibold uppercase tracking-wider text-slate-500 sm:text-xs">{label}</p>
+            </button>
+          ))}
+        </div>
+        <p className="flex items-center justify-end gap-1.5 text-[11px] text-slate-400">
+          <span className="h-2 w-2 animate-pulse rounded-full bg-emerald-500" aria-hidden="true" />
+          En vivo{updatedAt ? ` · actualizado ${updatedAt.toLocaleTimeString('es')}` : ''}
+        </p>
       </div>
 
       <Alert>{error}</Alert>
@@ -108,7 +146,7 @@ export const Dashboard = () => {
           {tab === 'subscriptions' && (
             <SubscriptionsPanel customers={data.customers} subscriptions={data.subscriptions} onChange={load} />
           )}
-          {tab === 'invoices' && <InvoicesPanel invoices={data.invoices} onChange={load} />}
+          {tab === 'invoices' && <InvoicesPanel invoices={data.invoices} rejections={data.rejections} rejectionsTotal={data.rejectionsTotal} onChange={load} />}
           {tab === 'payments' && (
             <PaymentsPanel subscriptions={data.subscriptions} payments={data.payments} onChange={load} />
           )}

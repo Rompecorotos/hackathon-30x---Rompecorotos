@@ -12,7 +12,6 @@ export const PATCH = handler(async (request: Request, { params }: IdContext) => 
     status: 'status',
     dueDate: 'due_date',
     failureReason: 'failure_reason',
-    attemptNumber: 'attempt_number',
   });
   // El motivo de fallo solo tiene sentido en cobros fallidos.
   if (input.status && input.status !== 'failed') changes.failure_reason = null;

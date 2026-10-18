@@ -22,6 +22,37 @@ const safeStorage = {
   },
 };
 
+// Teléfono de ventas (Enterprise): VITE_SALES_PHONE con prefijo internacional, p. ej. "+58 412 123 4567".
+const SALES_PHONE = (import.meta.env.VITE_SALES_PHONE ?? '').trim();
+const SALES_DIGITS = SALES_PHONE.replace(/\D/g, '');
+const WHATSAPP_TEXT = encodeURIComponent('Hola, me interesa el plan Enterprise Custom de Bankly.');
+
+function SalesContact() {
+  return (
+    <div className="shrink-0 space-y-1.5 text-right">
+      <p className="text-xs font-semibold text-slate-500">Contacta con ventas</p>
+      {SALES_DIGITS ? (
+        <>
+          <p className="text-sm font-bold text-[#2B2E4A]">{SALES_PHONE}</p>
+          <div className="flex justify-end gap-1.5">
+            <a
+              href={`https://wa.me/${SALES_DIGITS}?text=${WHATSAPP_TEXT}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="rounded-lg bg-[#25D366] px-2.5 py-1.5 text-xs font-bold text-white transition hover:brightness-95"
+            >
+              WhatsApp
+            </a>
+            <a href={`tel:+${SALES_DIGITS}`} className="rounded-lg border border-slate-200 px-2.5 py-1.5 text-xs font-bold text-[#2B2E4A] transition hover:bg-slate-50">
+              Llamar
+            </a>
+          </div>
+        </>
+      ) : null}
+    </div>
+  );
+}
+
 const formatDate = (iso) =>
   new Date(`${iso}T00:00:00`).toLocaleDateString('es', { day: '2-digit', month: 'long', year: 'numeric' });
 
@@ -162,7 +193,7 @@ export const PlanModal = () => {
                     {hasPlan ? 'Cambiar' : 'Adquirir'}
                   </button>
                 ) : (
-                  <span className="text-right text-xs font-semibold text-slate-500">Contacta con ventas</span>
+                  <SalesContact />
                 )}
               </div>
             ))}

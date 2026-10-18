@@ -50,6 +50,7 @@ export const api = {
   updatePlan: (action, planId) => request('/plan', { method: 'POST', body: { action, ...(planId && { planId }) } }),
 
   listInvoices: () => request('/invoices'),
+  listInvoiceRejections: () => request('/invoices/rejections'),
   // Manual: JSON. Imagen/PDF/QR: multipart con el documento o el texto del QR para que la IA compare.
   createInvoice: (data, { source = 'manual', file = null, qr = null } = {}) => {
     if (source === 'manual') return request('/invoices', { method: 'POST', body: data });

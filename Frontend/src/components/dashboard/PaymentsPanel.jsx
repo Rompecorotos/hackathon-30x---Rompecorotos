@@ -5,7 +5,7 @@ import { api } from '../../lib/api';
 import { formatDate, formatMoney, LABELS, today } from '../../lib/format';
 import { Alert, EmptyRow, LinkButton, Panel, PrimaryButton, StatusBadge, Table } from './ui';
 
-const EMPTY = { subscriptionId: '', status: 'succeeded', dueDate: today(), failureReason: '', attemptNumber: '1' };
+const EMPTY = { subscriptionId: '', status: 'succeeded', dueDate: today(), failureReason: '' };
 const STATUSES = ['succeeded', 'failed', 'pending', 'refunded'].map((v) => ({ value: v, label: LABELS[v] }));
 
 export const PaymentsPanel = ({ subscriptions, payments, onChange }) => {
@@ -39,11 +39,9 @@ export const PaymentsPanel = ({ subscriptions, payments, onChange }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const attempt = Number(form.attemptNumber);
     const nextErrors = {};
     if (!form.subscriptionId) nextErrors.subscriptionId = 'Selecciona una suscripción';
     if (!form.dueDate) nextErrors.dueDate = 'Fecha obligatoria';
-    if (!Number.isInteger(attempt) || attempt < 1 || attempt > 50) nextErrors.attemptNumber = 'Entre 1 y 50';
     setErrors(nextErrors);
     if (Object.keys(nextErrors).length) return;
 
@@ -53,7 +51,6 @@ export const PaymentsPanel = ({ subscriptions, payments, onChange }) => {
           subscriptionId: form.subscriptionId,
           status: form.status,
           dueDate: form.dueDate,
-          attemptNumber: attempt,
           ...(form.status === 'failed' && form.failureReason.trim() ? { failureReason: form.failureReason.trim() } : {}),
         }),
       'Cobro registrado.',
@@ -77,8 +74,8 @@ export const PaymentsPanel = ({ subscriptions, payments, onChange }) => {
   const visible = filter ? payments.filter((p) => p.status === filter) : payments;
 
   return (
-    <Panel title="Cobros" subtitle="Historial de intentos de cobro (el agente IA los analiza para proponer reintentos)">
-      <form onSubmit={handleSubmit} className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+    <Panel title="Cobros" subtitle="Historial de intentos de cobro: máximo 3 intentos por fecha (el agente IA los analiza para proponer reintentos)">
+      <form onSubmit={handleSubmit} className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         <SelectField
           label="Suscripción"
           name="subscriptionId"
@@ -97,13 +94,12 @@ export const PaymentsPanel = ({ subscriptions, payments, onChange }) => {
         />
         <SelectField label="Resultado" name="status" value={form.status} onChange={handleChange} options={STATUSES} disabled={busy} />
         <InputField label="Fecha" type="date" name="dueDate" value={form.dueDate} onChange={handleChange} error={errors.dueDate} required disabled={busy} />
-        <InputField label="Intento nº" type="number" name="attemptNumber" value={form.attemptNumber} onChange={handleChange} error={errors.attemptNumber} disabled={busy} />
         {form.status === 'failed' && (
-          <div className="sm:col-span-2 lg:col-span-4">
+          <div className="sm:col-span-2 lg:col-span-3">
             <InputField label="Motivo del fallo" name="failureReason" value={form.failureReason} onChange={handleChange} placeholder="Fondos insuficientes" error={errors.failureReason} disabled={busy} />
           </div>
         )}
-        <div className="sm:col-span-2 lg:col-span-4">
+        <div className="sm:col-span-2 lg:col-span-3">
           <PrimaryButton isLoading={busy}>Registrar cobro</PrimaryButton>
         </div>
       </form>
@@ -135,7 +131,7 @@ export const PaymentsPanel = ({ subscriptions, payments, onChange }) => {
               <StatusBadge status={p.status} />
             </td>
             <td className="px-3 py-2.5 text-xs text-slate-500">
-              Intento {p.attemptNumber}
+              Intento {p.attemptNumber} de 3
               {p.failureReason ? ` · ${p.failureReason}` : ''}
             </td>
             <td className="space-x-3 px-3 py-2.5">

@@ -70,6 +70,16 @@ export const POST = handler(async (request: Request) => {
   await enforceAiRateLimit(supabase);
   const review = await reviewInvoice(input, source, { document, qrText, signal: request.signal });
   if (review.verdict === 'invalida') {
+    // Se registra el intento para el contador de "facturas incorrectas" del panel.
+    const { error: rejError } = await supabase.from('invoice_rejections').insert({
+      invoice_number: input.invoiceNumber.slice(0, 60),
+      payee: input.payee.slice(0, 160),
+      amount_cents: input.amountCents,
+      currency: input.currency,
+      source,
+      reason: review.explanation.slice(0, 1500),
+    });
+    if (rejError) console.error('[invoices] No se pudo registrar el rechazo:', rejError.message);
     throw new HttpError(422, `La IA rechazó la factura: ${review.explanation}`, undefined, { review });
   }
 

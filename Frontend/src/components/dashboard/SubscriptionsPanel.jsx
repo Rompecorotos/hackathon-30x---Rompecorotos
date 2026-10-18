@@ -45,6 +45,7 @@ export const SubscriptionsPanel = ({ customers, subscriptions, onChange }) => {
     if (form.description.trim().length < 2) nextErrors.description = 'Mínimo 2 caracteres';
     if (!amountCents) nextErrors.amountCents = 'Importe inválido';
     if (!form.nextChargeDate) nextErrors.nextChargeDate = 'Fecha obligatoria';
+    else if (form.nextChargeDate < today()) nextErrors.nextChargeDate = 'La fecha ya está vencida: elige hoy o una fecha futura';
     setErrors(nextErrors);
     if (Object.keys(nextErrors).length) return;
 
@@ -111,7 +112,12 @@ export const SubscriptionsPanel = ({ customers, subscriptions, onChange }) => {
             <td className="px-3 py-2.5 text-slate-900">
               {formatMoney(s.amountCents, s.currency)} <span className="text-xs text-slate-500">/ {LABELS[s.billingInterval]?.toLowerCase()}</span>
             </td>
-            <td className="px-3 py-2.5 text-slate-600">{formatDate(s.nextChargeDate)}</td>
+            <td className="px-3 py-2.5 text-slate-600">
+              {formatDate(s.nextChargeDate)}
+              {s.status === 'active' && s.nextChargeDate < today() && (
+                <span className="mt-0.5 block text-[11px] font-semibold text-red-600">Vencido: registra el cobro</span>
+              )}
+            </td>
             <td className="px-3 py-2.5">
               <StatusBadge status={s.status} />
             </td>

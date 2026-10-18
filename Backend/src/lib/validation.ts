@@ -47,6 +47,12 @@ const nonEmpty = <T extends z.ZodObject>(schema: T) =>
 
 const name = fullName;
 const isoDate = z.iso.date('Fecha inválida (AAAA-MM-DD)');
+// Fecha de hoy o futura (la BD lo vuelve a comprobar con un trigger). Se admite "ayer" en UTC
+// porque el servidor está en UTC y en América "hoy" puede ser todavía el día anterior.
+const futureDate = isoDate.refine(
+  (d) => d >= new Date(Date.now() - 86_400_000).toISOString().slice(0, 10),
+  'La fecha del próximo cobro ya está vencida: elige hoy o una fecha futura',
+);
 const amountCents = z
   .number('El importe es obligatorio')
   .int('El importe debe expresarse en céntimos')
@@ -68,7 +74,7 @@ export const subscriptionCreateSchema = z.strictObject({
   amountCents,
   currency: z.enum(CURRENCIES, 'Moneda no soportada').default('USD'),
   billingInterval: z.enum(BILLING_INTERVALS, 'Periodicidad inválida').default('monthly'),
-  nextChargeDate: isoDate,
+  nextChargeDate: futureDate,
 });
 export const subscriptionUpdateSchema = nonEmpty(
   z.strictObject({
@@ -77,7 +83,7 @@ export const subscriptionUpdateSchema = nonEmpty(
     currency: z.enum(CURRENCIES, 'Moneda no soportada').optional(),
     billingInterval: z.enum(BILLING_INTERVALS, 'Periodicidad inválida').optional(),
     status: z.enum(SUBSCRIPTION_STATUSES, 'Estado inválido').optional(),
-    nextChargeDate: isoDate.optional(),
+    nextChargeDate: futureDate.optional(),
   }),
 );
 
@@ -116,13 +122,11 @@ export const paymentCreateSchema = z.strictObject({
   status: z.enum(PAYMENT_STATUSES, 'Estado inválido').default('pending'),
   dueDate: isoDate,
   failureReason: failureReason.optional(),
-  attemptNumber: z.number().int().min(1).max(50).default(1),
 });
 export const paymentUpdateSchema = nonEmpty(
   z.strictObject({
     status: z.enum(PAYMENT_STATUSES, 'Estado inválido').optional(),
     dueDate: isoDate.optional(),
     failureReason: failureReason.optional(),
-    attemptNumber: z.number().int().min(1).max(50).optional(),
   }),
 );

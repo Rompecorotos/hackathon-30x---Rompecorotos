@@ -7,7 +7,7 @@ import { Alert, EmptyRow, LinkButton, Panel, StatusBadge, Table } from './ui';
 const STATUSES = ['recibida', 'aprobada', 'pagada', 'rechazada'];
 const SOURCE_LABELS = { manual: 'Manual', imagen: 'Imagen', pdf: 'PDF', qr: 'Código QR' };
 
-export const InvoicesPanel = ({ invoices, onChange }) => {
+export const InvoicesPanel = ({ invoices, rejections = [], rejectionsTotal = 0, onChange }) => {
   const [status, setStatus] = useState({ type: '', message: '' });
   const [busy, setBusy] = useState(false);
 
@@ -92,6 +92,28 @@ export const InvoicesPanel = ({ invoices, onChange }) => {
           );
         })}
       </Table>
+      {/* Facturas que la IA no dejó registrar */}
+      <div className="space-y-2 border-t border-slate-100 pt-4">
+        <h3 className="text-sm font-bold text-[#2B2E4A]">
+          Facturas incorrectas rechazadas por la IA <span className="text-red-600">({rejectionsTotal})</span>
+        </h3>
+        {rejections.length === 0 ? (
+          <p className="text-sm text-slate-500">Ningún intento rechazado.</p>
+        ) : (
+          <Table headers={['Fecha', 'Nº', 'Beneficiario', 'Importe', 'Origen', 'Motivo']}>
+            {rejections.map((r) => (
+              <tr key={r.id}>
+                <td className="px-3 py-2.5 text-slate-600">{new Date(r.createdAt).toLocaleString('es', { dateStyle: 'short', timeStyle: 'short' })}</td>
+                <td className="px-3 py-2.5 text-slate-600">{r.invoiceNumber}</td>
+                <td className="px-3 py-2.5 font-medium text-slate-900">{r.payee}</td>
+                <td className="px-3 py-2.5 text-slate-900">{formatMoney(r.amountCents, r.currency)}</td>
+                <td className="px-3 py-2.5 text-slate-600">{SOURCE_LABELS[r.source] ?? r.source}</td>
+                <td className="px-3 py-2.5 text-xs text-red-600">{r.reason}</td>
+              </tr>
+            ))}
+          </Table>
+        )}
+      </div>
     </Panel>
   );
 };

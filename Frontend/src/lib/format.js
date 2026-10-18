@@ -15,7 +15,11 @@ export const toCents = (value) => {
   return Number.isFinite(n) && n > 0 ? Math.round(n * 100) : null;
 };
 
-export const today = () => new Date().toISOString().slice(0, 10);
+// Fecha local del usuario (no UTC: en América, por la tarde-noche UTC ya es "mañana").
+export const today = () => {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+};
 
 export const CURRENCIES = ['USD', 'EUR', 'ARS', 'MXN', 'COP', 'CLP', 'PEN', 'BRL', 'UYU'];
 

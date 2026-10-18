@@ -6,6 +6,7 @@ import { HttpError } from '@/lib/http';
 const UNIQUE_MESSAGES: Record<string, string> = {
   customers_owner_email_key: 'Ya existe un cliente con ese email',
   invoices_owner_number_payee_key: 'Esa factura ya está registrada para este beneficiario',
+  payments_one_success_per_due_date: 'Este cobro ya figura como cobrado para esa fecha',
 };
 
 /** Traduce errores de PostgREST/Postgres a HttpError sin exponer detalles internos. */
@@ -24,6 +25,9 @@ export function dbError(error: PostgrestError): HttpError {
       return new HttpError(422, 'Datos inválidos');
     case '42501':
       return new HttpError(403, 'No tienes permiso para esta operación');
+    case 'P0001':
+      // Reglas de negocio de la BD (fecha vencida, límite de intentos, cobro duplicado): mensaje pensado para el usuario.
+      return new HttpError(409, error.message);
     case 'PGRST205':
       // La tabla no existe en Supabase: falta ejecutar una migración de supabase/migrations.
       console.error('[db] Tabla inexistente (¿migración pendiente?):', error.message);

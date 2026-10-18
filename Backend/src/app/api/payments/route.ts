@@ -45,7 +45,6 @@ export const POST = handler(async (request: Request) => {
       status: input.status,
       due_date: input.dueDate,
       failure_reason: input.status === 'failed' ? (input.failureReason ?? null) : null,
-      attempt_number: input.attemptNumber,
     })
     .select(PAYMENT_COLUMNS)
     .single();
