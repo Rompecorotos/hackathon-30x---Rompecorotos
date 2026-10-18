@@ -137,11 +137,11 @@ export default function InvoiceForm({ onCreated }) {
   };
 
   // Aplica los datos leídos por la IA (o el lector local) al formulario.
-  const applyExtracted = useCallback((data) => {
+  const applyExtracted = useCallback((data, emptyText) => {
     const patch = toPatch(data);
     const keys = Object.keys(patch);
     if (keys.length === 0) {
-      setMessage({ type: "error", text: "No pude leer datos en esa factura. Completa los campos a mano." });
+      setMessage({ type: "error", text: emptyText ?? "No pude leer datos en esa factura. Completa los campos a mano." });
       return;
     }
     setForm((f) => ({ ...f, ...patch }));
@@ -198,7 +198,10 @@ export default function InvoiceForm({ onCreated }) {
       setReview(null);
       setExtracting(true);
       try {
-        applyExtracted(await api.extractInvoice(text, "qr"));
+        applyExtracted(
+          await api.extractInvoice(text, "qr"),
+          "El QR se leyó, pero no contiene los datos de la factura (solo una referencia o un enlace). Completa los campos a mano o usa Imagen/PDF.",
+        );
       } catch (e) {
         setMessage({ type: "error", text: `${e.message} Puedes completar los campos a mano; el QR se usará para la revisión.` });
       } finally {

@@ -1,25 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import jsQR from "jsqr";
 import { looksLikeImage, normalizeImage } from "../lib/image";
-
-
-// Decodifica el QR de un canvas con la imagen ya dibujada.
-function decodeCanvas(canvas) {
-  const ctx = canvas.getContext("2d", { willReadFrequently: true });
-  const { data, width, height } = ctx.getImageData(0, 0, canvas.width, canvas.height);
-  return jsQR(data, width, height, { inversionAttempts: "attemptBoth" })?.data ?? null;
-}
-
-async function decodeImageFile(file) {
-  const bitmap = await createImageBitmap(file);
-  const canvas = document.createElement("canvas");
-  // Reducir imágenes muy grandes acelera la lectura sin perder el QR.
-  const scale = Math.min(1, 1600 / Math.max(bitmap.width, bitmap.height));
-  canvas.width = Math.round(bitmap.width * scale);
-  canvas.height = Math.round(bitmap.height * scale);
-  canvas.getContext("2d").drawImage(bitmap, 0, 0, canvas.width, canvas.height);
-  return decodeCanvas(canvas);
-}
+import { decodeCanvas, decodeQrFromFile } from "../lib/qr";
 
 /**
  * Lector de códigos QR: con la cámara o subiendo una foto del código (PNG/JPG, máx. 4 MB).
@@ -30,6 +11,7 @@ export function QrScanner({ onDecode, disabled }) {
   const fileRef = useRef(null);
   const [scanning, setScanning] = useState(false);
   const [error, setError] = useState("");
+  const [reading, setReading] = useState(false);
 
   useEffect(() => {
     if (!scanning) return undefined;
@@ -81,13 +63,17 @@ export function QrScanner({ onDecode, disabled }) {
     if (!file) return;
     setError("");
     if (!looksLikeImage(file)) return setError("Sube una foto (JPG, PNG o WebP) del código QR.");
+    setReading(true);
     try {
-      // Igual que en el modo Imagen: cualquier foto se convierte a JPG ≤ 4 MB.
-      const text = await decodeImageFile(await normalizeImage(file));
+      // La foto se lee en el navegador (no se sube): se usa la original para no perder nitidez.
+      // Si el navegador no puede abrirla tal cual, se convierte a JPG primero.
+      const text = await decodeQrFromFile(file).catch(async () => decodeQrFromFile(await normalizeImage(file)));
       if (text) onDecode(text);
-      else setError("No se encontró ningún código QR en la imagen. Prueba con una foto más nítida o recortada al código.");
+      else setError("No se encontró ningún código QR en la foto. Encuadra solo el código, con buena luz y sin reflejos.");
     } catch (e) {
       setError(e.userMessage ?? "No se pudo leer la imagen.");
+    } finally {
+      setReading(false);
     }
   }
 
@@ -111,8 +97,8 @@ export function QrScanner({ onDecode, disabled }) {
         >
           {scanning ? "Detener cámara" : "Escanear con cámara"}
         </button>
-        <button type="button" disabled={disabled || scanning} onClick={() => fileRef.current?.click()} className={button}>
-          Subir foto del QR
+        <button type="button" disabled={disabled || scanning || reading} onClick={() => fileRef.current?.click()} className={button}>
+          {reading ? "Leyendo QR..." : "Subir foto del QR"}
         </button>
         <input ref={fileRef} type="file" accept="image/*" onChange={handleFile} className="hidden" />
       </div>
