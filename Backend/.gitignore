@@ -33,3 +33,5 @@ Thumbs.db
 # TypeScript / Next.js generados
 next-env.d.ts
 *.tsbuildinfo
+.vercel
+.env*
