@@ -78,6 +78,36 @@ export const subscriptionUpdateSchema = nonEmpty(
   }),
 );
 
+// --- Facturas ---
+
+export const INVOICE_STATUSES = ['recibida', 'aprobada', 'pagada', 'rechazada'] as const;
+const concept = z.string().trim().max(500, 'Máximo 500 caracteres').nullable();
+
+export const invoiceCreateSchema = z.strictObject({
+  invoiceNumber: z.string('El número de factura es obligatorio').trim().min(1, 'Escribe el número de factura').max(60, 'Máximo 60 caracteres'),
+  payee: z.string('El beneficiario es obligatorio').trim().min(2, 'Mínimo 2 caracteres').max(160, 'Máximo 160 caracteres'),
+  amountCents: amountCents,
+  currency: z.enum(CURRENCIES, 'Moneda no soportada').default('USD'),
+  dueDate: isoDate,
+  concept: concept.optional(),
+});
+export const invoiceUpdateSchema = nonEmpty(
+  z.strictObject({
+    status: z.enum(INVOICE_STATUSES, 'Estado inválido').optional(),
+    dueDate: isoDate.optional(),
+    concept: concept.optional(),
+  }),
+);
+
+// --- Recuperación de contraseña (OTP por email) ---
+
+export const passwordForgotSchema = z.strictObject({ email });
+export const passwordVerifySchema = z.strictObject({
+  email,
+  token: z.string('El código es obligatorio').trim().regex(/^\d{6,10}$/, 'Código inválido'),
+});
+export const passwordResetSchema = z.strictObject({ password: registerSchema.shape.password });
+
 export const paymentCreateSchema = z.strictObject({
   subscriptionId: z.uuid('Suscripción inválida'),
   status: z.enum(PAYMENT_STATUSES, 'Estado inválido').default('pending'),

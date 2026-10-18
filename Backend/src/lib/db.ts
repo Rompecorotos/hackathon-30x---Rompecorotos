@@ -5,6 +5,7 @@ import { HttpError } from '@/lib/http';
 
 const UNIQUE_MESSAGES: Record<string, string> = {
   customers_owner_email_key: 'Ya existe un cliente con ese email',
+  invoices_owner_number_payee_key: 'Esa factura ya está registrada para este beneficiario',
 };
 
 /** Traduce errores de PostgREST/Postgres a HttpError sin exponer detalles internos. */

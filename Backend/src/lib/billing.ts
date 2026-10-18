@@ -8,7 +8,23 @@ export const SUBSCRIPTION_COLUMNS =
 export const PAYMENT_COLUMNS =
   'id, subscription_id, amount_cents, currency, status, failure_reason, due_date, attempt_number, created_at, updated_at, subscription:subscriptions(id, description, customer:customers(id, name, email))';
 
+export const INVOICE_COLUMNS =
+  'id, invoice_number, payee, amount_cents, currency, due_date, concept, status, created_at, updated_at';
+
 type Row = Record<string, unknown>;
+
+export const mapInvoice = (r: Row) => ({
+  id: r.id as string,
+  invoiceNumber: r.invoice_number as string,
+  payee: r.payee as string,
+  amountCents: Number(r.amount_cents),
+  currency: r.currency as string,
+  dueDate: r.due_date as string,
+  concept: (r.concept as string | null) ?? null,
+  status: r.status as string,
+  createdAt: r.created_at as string,
+  updatedAt: r.updated_at as string,
+});
 type CustomerRef = { id: string; name: string; email: string } | null;
 
 export const mapCustomer = (r: Row) => ({

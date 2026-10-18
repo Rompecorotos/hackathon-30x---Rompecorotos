@@ -48,8 +48,20 @@ export function assertSafeMutation(request: Request) {
   if (!contentType.toLowerCase().startsWith('application/json')) {
     throw new HttpError(415, 'Content-Type debe ser application/json');
   }
+  assertAllowedOrigin(request, false);
+}
+
+/**
+ * Comprueba el Origin. Para subidas multipart (que no fuerzan preflight CORS)
+ * se exige que exista: los navegadores siempre lo envían en POST.
+ */
+export function assertAllowedOrigin(request: Request, required: boolean) {
   const origin = request.headers.get('origin');
-  if (origin && origin !== new URL(request.url).origin && !env.frontendOrigins.includes(origin)) {
+  if (!origin) {
+    if (required) throw new HttpError(403, 'Origen no permitido');
+    return;
+  }
+  if (origin !== new URL(request.url).origin && !env.frontendOrigins.includes(origin)) {
     throw new HttpError(403, 'Origen no permitido');
   }
 }

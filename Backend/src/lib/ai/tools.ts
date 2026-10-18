@@ -150,6 +150,42 @@ export function createBillingTools(supabase: SupabaseClient) {
       },
     }),
 
+    facturas: tool({
+      description:
+        'Facturas registradas por el comercio (por pagar a proveedores). Útil para revisar las recibidas, priorizar por vencimiento y detectar vencidas o duplicadas.',
+      inputSchema: z.object({
+        estado: z.enum(['recibida', 'aprobada', 'pagada', 'rechazada']).optional().describe('Filtrar por estado'),
+        limite: z.number().int().min(1).max(50).default(20),
+      }),
+      execute: async ({ estado, limite }) => {
+        let query = supabase
+          .from('invoices')
+          .select('invoice_number, payee, amount_cents, currency, due_date, concept, status')
+          .order('due_date')
+          .limit(limite);
+        if (estado) query = query.eq('status', estado);
+        const rows = check(await query) as {
+          invoice_number: string;
+          payee: string;
+          amount_cents: number;
+          currency: string;
+          due_date: string;
+          concept: string | null;
+          status: string;
+        }[];
+        const hoy = isoDay();
+        return rows.map((f) => ({
+          numero: f.invoice_number,
+          beneficiario: f.payee,
+          importe: money(Number(f.amount_cents), f.currency),
+          vencimiento: f.due_date,
+          vencida: f.status !== 'pagada' && f.due_date < hoy,
+          estado: f.status,
+          concepto: f.concept ?? undefined,
+        }));
+      },
+    }),
+
     buscarCliente: tool({
       description: 'Busca clientes por nombre o email y devuelve sus suscripciones y últimos cobros.',
       inputSchema: z.object({ texto: z.string().min(2).max(100).describe('Nombre o email (parcial)') }),

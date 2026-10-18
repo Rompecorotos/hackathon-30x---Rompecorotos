@@ -9,11 +9,10 @@ import {
   toUIMessageStream,
   type UIMessage,
 } from 'ai';
-import type { SupabaseClient } from '@supabase/supabase-js';
 import { getProfile, requireUser } from '@/lib/auth';
 import { systemPrompt } from '@/lib/ai/prompt';
+import { enforceAiRateLimit } from '@/lib/ai/rate-limit';
 import { createBillingTools } from '@/lib/ai/tools';
-import { dbError } from '@/lib/db';
 import { env } from '@/lib/env';
 import { assertSafeMutation, handler, HttpError } from '@/lib/http';
 
@@ -23,24 +22,6 @@ const MAX_HISTORY = 20;
 const MAX_MESSAGE_CHARS = 2000;
 const MAX_TOTAL_CHARS = 30_000;
 const MODEL_TIMEOUT_MS = 45_000;
-
-/** Límite por usuario (por minuto y por día) para proteger la cuota gratuita de Gemini. */
-async function enforceRateLimit(supabase: SupabaseClient) {
-  const count = async (ms: number) => {
-    const { count, error } = await supabase
-      .from('ai_requests')
-      .select('id', { count: 'exact', head: true })
-      .gte('created_at', new Date(Date.now() - ms).toISOString());
-    if (error) throw dbError(error);
-    return count ?? 0;
-  };
-  const [lastMinute, lastDay] = await Promise.all([count(60_000), count(86_400_000)]);
-  if (lastMinute >= env.aiPerMinuteLimit) throw new HttpError(429, 'Demasiados mensajes seguidos. Espera un minuto.');
-  if (lastDay >= env.aiDailyLimit) throw new HttpError(429, 'Has alcanzado el límite diario del asistente.');
-
-  const { error } = await supabase.from('ai_requests').insert({});
-  if (error) throw dbError(error);
-}
 
 const textLength = (m: UIMessage) =>
   m.parts.reduce((n, p) => n + (p.type === 'text' ? p.text.length : 0), 0);
@@ -80,7 +61,7 @@ export const POST = handler(async (request: Request) => {
     throw new HttpError(422, 'La conversación es demasiado larga. Empieza una nueva.');
   }
 
-  await enforceRateLimit(supabase);
+  await enforceAiRateLimit(supabase);
 
   const profile = await getProfile(supabase, user.id);
   const tools = createBillingTools(supabase);
