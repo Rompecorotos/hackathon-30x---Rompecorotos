@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { api } from '../lib/api';
+import { getLocale } from '../i18n';
 import { useAuth } from '../context/AuthContext';
 import { CustomersPanel } from '../components/dashboard/CustomersPanel';
 import { SubscriptionsPanel } from '../components/dashboard/SubscriptionsPanel';
@@ -116,7 +117,7 @@ export const Dashboard = () => {
         </div>
         <p className="flex items-center justify-end gap-1.5 text-[11px] text-slate-400">
           <span className="h-2 w-2 animate-pulse rounded-full bg-emerald-500" aria-hidden="true" />
-          En vivo{updatedAt ? ` · actualizado ${updatedAt.toLocaleTimeString('es')}` : ''}
+          En vivo{updatedAt ? ` · actualizado ${updatedAt.toLocaleTimeString(getLocale())}` : ''}
         </p>
       </div>
 

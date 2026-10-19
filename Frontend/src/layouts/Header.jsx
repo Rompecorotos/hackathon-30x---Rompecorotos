@@ -2,6 +2,7 @@ import React from 'react';
 import { Logo } from '../components/Logo';
 import { NavLink } from '../components/NavLink';
 import { AuthButtons } from '../components/AuthButtons';
+import { LanguageSwitcher } from '../components/LanguageSwitcher';
 
 export const Header = ({ isLoggedIn = false }) => {
   return (
@@ -25,7 +26,8 @@ export const Header = ({ isLoggedIn = false }) => {
         </div>
 
         {/* Derecha: Botones de Auth */}
-        <div className="flex-shrink-0">
+        <div className="flex flex-shrink-0 items-center gap-1 sm:gap-2">
+          <LanguageSwitcher />
           <AuthButtons isLoggedIn={isLoggedIn} />
         </div>
 

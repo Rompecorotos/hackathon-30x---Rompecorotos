@@ -4,6 +4,7 @@ import { reviewInvoice } from '@/lib/ai/invoice-review';
 import { enforceAiRateLimit } from '@/lib/ai/rate-limit';
 import { INVOICE_COLUMNS, mapInvoice } from '@/lib/billing';
 import { dbError } from '@/lib/db';
+import { languageName, requestLang } from '@/lib/lang';
 import { handler, HttpError, json, parseBody, validateInput } from '@/lib/http';
 import { isMultipart, readDocument, readMultipart, readQr, readSource } from '@/lib/invoice-input';
 import { INVOICE_STATUSES, invoiceCreateSchema } from '@/lib/validation';
@@ -68,7 +69,7 @@ export const POST = handler(async (request: Request) => {
   if (existing.length) throw new HttpError(409, 'Esa factura ya está registrada para este beneficiario');
 
   await enforceAiRateLimit(supabase);
-  const review = await reviewInvoice(input, source, { document, qrText, signal: request.signal });
+  const review = await reviewInvoice(input, source, { document, qrText, signal: request.signal, language: languageName(requestLang(request)) });
   if (review.verdict === 'invalida') {
     // Se registra el intento para el contador de "facturas incorrectas" del panel.
     const { error: rejError } = await supabase.from('invoice_rejections').insert({

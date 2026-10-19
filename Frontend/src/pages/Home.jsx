@@ -29,7 +29,7 @@ export const Home = () => {
           </div>
 
           <h1 className="text-3xl sm:text-5xl lg:text-6xl font-extrabold text-slate-900 tracking-tight leading-tight">
-            Automatiza tus cobros con <span className="text-[#5BD3C7] bg-clip-text text-transparent bg-gradient-to-r from-[#2B2E4A] to-[#5BD3C7] underline decoration-[#5BD3C7] decoration-wavy decoration-2 underline-offset-8">Débito Automático</span> inteligente
+            Automatiza tus cobros con <span className="text-[#5BD3C7] bg-clip-text text-transparent bg-gradient-to-r from-[#2B2E4A] to-[#5BD3C7] underline decoration-[#5BD3C7] decoration-wavy decoration-2 underline-offset-8">Débito Automático inteligente</span>
           </h1>
 
           <p className="text-base sm:text-lg text-slate-600 max-w-2xl mx-auto leading-relaxed">

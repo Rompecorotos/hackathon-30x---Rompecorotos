@@ -1,13 +1,15 @@
+import { getLocale } from '../i18n';
+
 export const formatMoney = (cents, currency) => {
   try {
-    return new Intl.NumberFormat('es', { style: 'currency', currency }).format(cents / 100);
+    return new Intl.NumberFormat(getLocale(), { style: 'currency', currency }).format(cents / 100);
   } catch {
     return `${(cents / 100).toFixed(2)} ${currency}`;
   }
 };
 
 export const formatDate = (isoDate) =>
-  new Date(`${isoDate}T00:00:00`).toLocaleDateString('es', { day: '2-digit', month: 'short', year: 'numeric' });
+  new Date(`${isoDate}T00:00:00`).toLocaleDateString(getLocale(), { day: '2-digit', month: 'short', year: 'numeric' });
 
 /** Convierte "19,99" o "19.99" a céntimos enteros; null si no es válido. */
 export const toCents = (value) => {

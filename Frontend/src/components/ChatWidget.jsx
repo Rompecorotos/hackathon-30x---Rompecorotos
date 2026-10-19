@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useChat } from '@ai-sdk/react';
 import { DefaultChatTransport } from 'ai';
+import { getLang } from '../i18n';
 
 const MAX_CHARS = 2000;
 
@@ -32,7 +33,7 @@ export const ChatWidget = () => {
   const [input, setInput] = useState('');
   const endRef = useRef(null);
   const { messages, sendMessage, status, error, stop, setMessages, clearError } = useChat({
-    transport: new DefaultChatTransport({ api: '/api/ai/chat', credentials: 'same-origin' }),
+    transport: new DefaultChatTransport({ api: '/api/ai/chat', credentials: 'same-origin', headers: () => ({ 'x-lang': getLang() }) }),
   });
   const isBusy = status === 'submitted' || status === 'streaming';
 
@@ -94,7 +95,8 @@ export const ChatWidget = () => {
                   }`}
                 >
                   {m.parts.map((part, i) => {
-                    if (part.type === 'text') return <p key={i} className="whitespace-pre-wrap">{part.text}</p>;
+                    // El texto lo escribe el usuario o la IA (ya en el idioma elegido): no se traduce.
+                    if (part.type === 'text') return <p key={i} data-no-translate className="whitespace-pre-wrap">{part.text}</p>;
                     if (TOOL_LABELS[part.type]) {
                       const done = part.state === 'output-available' || part.state === 'output-error';
                       return (

@@ -1,3 +1,5 @@
+import { getLang } from '../i18n';
+
 export class ApiError extends Error {
   constructor(status, message, fields = {}, data = null) {
     super(message);
@@ -15,7 +17,8 @@ async function request(path, { method = 'GET', body, formData } = {}) {
       method,
       credentials: 'same-origin',
       // Con FormData el navegador fija el Content-Type multipart (con boundary).
-      headers: body !== undefined ? { 'Content-Type': 'application/json' } : undefined,
+      // x-lang: idioma de la interfaz, para que la IA responda y explique en ese idioma.
+      headers: { 'x-lang': getLang(), ...(body !== undefined && { 'Content-Type': 'application/json' }) },
       body: formData ?? (body !== undefined ? JSON.stringify(body) : undefined),
     });
   } catch {

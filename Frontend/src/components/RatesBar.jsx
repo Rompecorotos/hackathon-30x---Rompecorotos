@@ -1,8 +1,9 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { api } from '../lib/api';
+import { getLocale } from '../i18n';
 
 const REFRESH_MS = 5 * 60 * 1000;
-const ves = (n) => n.toLocaleString(document.documentElement.lang || 'es', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const ves = (n) => n.toLocaleString(getLocale(), { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
 const Rate = ({ label, value, title }) => (
   <span className="flex items-baseline gap-1.5 whitespace-nowrap" title={title}>
@@ -42,7 +43,7 @@ export const RatesBar = () => {
   if (!rates && !failed) return null;
 
   const { bcv, binance } = rates ?? {};
-  const synced = rates?.syncedAt ? new Date(rates.syncedAt).toLocaleTimeString(document.documentElement.lang || 'es', { hour: '2-digit', minute: '2-digit' }) : null;
+  const synced = rates?.syncedAt ? new Date(rates.syncedAt).toLocaleTimeString(getLocale(), { hour: '2-digit', minute: '2-digit' }) : null;
 
   return (
     <div className="w-full bg-[#2B2E4A] text-sm">

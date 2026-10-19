@@ -14,6 +14,7 @@ import { systemPrompt } from '@/lib/ai/prompt';
 import { enforceAiRateLimit } from '@/lib/ai/rate-limit';
 import { createBillingTools } from '@/lib/ai/tools';
 import { env } from '@/lib/env';
+import { languageName, requestLang } from '@/lib/lang';
 import { assertSafeMutation, handler, HttpError } from '@/lib/http';
 
 export const maxDuration = 60;
@@ -69,7 +70,7 @@ export const POST = handler(async (request: Request) => {
 
   const result = streamText({
     model: google(env.geminiModel),
-    system: systemPrompt(profile?.fullName ?? null),
+    system: systemPrompt(profile?.fullName ?? null, languageName(requestLang(request))),
     messages: await convertToModelMessages(messages, { tools, ignoreIncompleteToolCalls: true }),
     tools,
     stopWhen: isStepCount(5),

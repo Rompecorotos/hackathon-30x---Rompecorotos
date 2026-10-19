@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../../lib/api';
+import { getLocale } from '../../i18n';
 import { formatDate, formatMoney, LABELS, today } from '../../lib/format';
 import { Alert, EmptyRow, LinkButton, Panel, StatusBadge, Table } from './ui';
 
@@ -103,7 +104,7 @@ export const InvoicesPanel = ({ invoices, rejections = [], rejectionsTotal = 0, 
           <Table headers={['Fecha', 'Nº', 'Beneficiario', 'Importe', 'Origen', 'Motivo']}>
             {rejections.map((r) => (
               <tr key={r.id}>
-                <td className="px-3 py-2.5 text-slate-600">{new Date(r.createdAt).toLocaleString('es', { dateStyle: 'short', timeStyle: 'short' })}</td>
+                <td className="px-3 py-2.5 text-slate-600">{new Date(r.createdAt).toLocaleString(getLocale(), { dateStyle: 'short', timeStyle: 'short' })}</td>
                 <td className="px-3 py-2.5 text-slate-600">{r.invoiceNumber}</td>
                 <td className="px-3 py-2.5 font-medium text-slate-900">{r.payee}</td>
                 <td className="px-3 py-2.5 text-slate-900">{formatMoney(r.amountCents, r.currency)}</td>

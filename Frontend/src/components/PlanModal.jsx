@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { api } from '../lib/api';
 import { useAuth } from '../context/AuthContext';
 import { OPEN_PLAN_EVENT } from '../lib/planEvents';
+import { getLocale } from '../i18n';
 
 // Se muestra automáticamente una vez por sesión de navegador y usuario.
 const seenKey = (userId) => `bankly.planNotice.${userId}`;
@@ -54,7 +55,7 @@ function SalesContact() {
 }
 
 const formatDate = (iso) =>
-  new Date(`${iso}T00:00:00`).toLocaleDateString('es', { day: '2-digit', month: 'long', year: 'numeric' });
+  new Date(`${iso}T00:00:00`).toLocaleDateString(getLocale(), { day: '2-digit', month: 'long', year: 'numeric' });
 
 const btn = {
   primary:
