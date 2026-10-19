@@ -2,6 +2,7 @@ import 'server-only';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { tool } from 'ai';
 import { z } from 'zod';
+import { getBcvRates, getBinanceUsdt } from '@/lib/rates';
 
 /*
  * Herramientas del agente de pagos. Son de SOLO LECTURA y usan el cliente de
@@ -185,6 +186,19 @@ export function createBillingTools(supabase: SupabaseClient) {
           estado: f.status,
           concepto: f.concept ?? undefined,
         }));
+      },
+    }),
+
+    tasasCambio: tool({
+      description:
+        'Tasas de cambio actuales en Venezuela (bolívares, VES): oficiales del BCV para USD y EUR, y USDT en Binance P2P (compra, venta y promedio). Úsala para convertir importes.',
+      inputSchema: z.object({}),
+      execute: async () => {
+        const [bcv, binance] = await Promise.allSettled([getBcvRates(), getBinanceUsdt()]);
+        return {
+          bcv: bcv.status === 'fulfilled' ? bcv.value : 'no disponible',
+          binanceUsdt: binance.status === 'fulfilled' ? binance.value : 'no disponible',
+        };
       },
     }),
 

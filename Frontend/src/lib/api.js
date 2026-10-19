@@ -45,6 +45,7 @@ export const api = {
   verifyPasswordCode: (email, token) => request('/auth/password/verify', { method: 'POST', body: { email, token } }),
   resetPassword: (password) => request('/auth/password/reset', { method: 'POST', body: { password } }),
 
+  getRates: () => request('/rates'),
   getPlan: () => request('/plan'),
   // action: 'subscribe' | 'renew' | 'change'
   updatePlan: (action, planId) => request('/plan', { method: 'POST', body: { action, ...(planId && { planId }) } }),

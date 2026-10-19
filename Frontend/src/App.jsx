@@ -6,6 +6,7 @@ import { AppRoutes } from './routes/AppRoutes';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { ChatWidget } from './components/ChatWidget';
 import { PlanModal } from './components/PlanModal';
+import { RatesBar } from './components/RatesBar';
 
 function AppShell() {
   const { isLoggedIn, isLoading } = useAuth();
@@ -14,6 +15,7 @@ function AppShell() {
     <div className="min-h-screen bg-slate-50 text-slate-900">
       {/* El Header se mantiene visible en todas partes */}
       <Header isLoggedIn={isLoggedIn} />
+      <RatesBar />
 
       {/* Aquí se cargan las vistas según la URL */}
       <main className="p-6">
