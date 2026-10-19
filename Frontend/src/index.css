@@ -77,3 +77,24 @@ body {
   box-sizing: border-box;
   background-color: var(--bg);
 }
+/* Cinta de tasas (RatesBar): desplazamiento continuo, pausa al pasar el ratón y destello al cambiar. */
+@keyframes bankly-ticker {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+@keyframes bankly-flash-up {
+  0%, 100% { background-color: transparent; }
+  20% { background-color: rgb(16 185 129 / 0.35); }
+}
+@keyframes bankly-flash-down {
+  0%, 100% { background-color: transparent; }
+  20% { background-color: rgb(239 68 68 / 0.35); }
+}
+.bankly-ticker { animation: bankly-ticker 28s linear infinite; }
+.bankly-ticker-viewport:hover .bankly-ticker,
+.bankly-ticker-viewport:focus-within .bankly-ticker { animation-play-state: paused; }
+.bankly-flash-up { animation: bankly-flash-up 2.4s ease-out; }
+.bankly-flash-down { animation: bankly-flash-down 2.4s ease-out; }
+@media (prefers-reduced-motion: reduce) {
+  .bankly-ticker, .bankly-flash-up, .bankly-flash-down { animation: none; }
+}
